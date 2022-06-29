@@ -1,5 +1,5 @@
 package common
 
 type Aggregate interface {
-	On(event Event)
+	On(event Event) error
 }
