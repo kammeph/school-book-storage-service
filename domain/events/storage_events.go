@@ -2,22 +2,23 @@ package events
 
 import "github.com/kammeph/school-book-storage-service/domain/common"
 
-type StorageAdded struct {
+type StorageCreated struct {
 	common.EventModel
-	Name     string
-	Location string
 }
 
 type StorageRemoved struct {
 	common.EventModel
+	Reason string
 }
 
-type StorageRenamed struct {
+type StorageNameSet struct {
 	common.EventModel
-	Name string
+	Name   string
+	Reason string
 }
 
-type StorageRelocated struct {
+type StorageLocationSet struct {
 	common.EventModel
 	Location string
+	Reason   string
 }

@@ -18,98 +18,112 @@ type UnknownEvent struct {
 
 func TestAddStorage(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{}
-	createdEvents, err := aggregate.AddStorage("storage", "location")
+	createdEvents, err := aggregate.AddStorage(uuid.New(), "storage", "location")
 	assert.Nil(t, err)
-	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(events.StorageAdded)
-	assert.True(t, ok)
-	assert.Equal(t, v.Version, 1)
-	assert.Equal(t, v.Name, "storage")
-	assert.Equal(t, v.Location, "location")
+	assert.Len(t, createdEvents, 3)
+	created, createdOk := createdEvents[0].(events.StorageCreated)
+	assert.True(t, createdOk)
+	assert.Equal(t, created.Version, 1)
+	nameSet, nameSetOk := createdEvents[1].(events.StorageNameSet)
+	assert.True(t, nameSetOk)
+	assert.Equal(t, nameSet.Version, 2)
+	assert.Equal(t, nameSet.Name, "storage")
+	locationSet, locationOk := createdEvents[2].(events.StorageLocationSet)
+	assert.True(t, locationOk)
+	assert.Equal(t, locationSet.Version, 3)
+	assert.Equal(t, locationSet.Location, "location")
 }
 
 func TestAddStorageWithoutName(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{}
-	_, err := aggregate.AddStorage("", "location")
+	_, err := aggregate.AddStorage(uuid.New(), "", "location")
 	assert.NotNil(t, err)
 }
 
 func TestAddStorageWithoutLocation(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{}
-	_, err := aggregate.AddStorage("storage", "")
+	_, err := aggregate.AddStorage(uuid.New(), "storage", "")
 	assert.NotNil(t, err)
 }
 
 func TestRemoveStorage(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{}
-	createdEvents, err := aggregate.RemoveStorage()
+	createdEvents, err := aggregate.RemoveStorage("test")
 	assert.Nil(t, err)
 	assert.Len(t, createdEvents, 1)
 	v, ok := createdEvents[0].(events.StorageRemoved)
 	assert.True(t, ok)
 	assert.Equal(t, v.Version, 1)
+	assert.Equal(t, v.Reason, "test")
 }
 
 func TestRemoveStorageForRemovedStorage(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{Storage: entities.Storage{Removed: true}}
-	_, err := aggregate.RemoveStorage()
+	_, err := aggregate.RemoveStorage("")
+	assert.NotNil(t, err)
+}
+
+func TestRemoveStorageNoReason(t *testing.T) {
+	aggregate := aggregates.StorageAggregate{}
+	_, err := aggregate.RemoveStorage("")
 	assert.NotNil(t, err)
 }
 
 func TestRenameStorage(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{Storage: entities.Storage{Name: "storage"}}
-	createdEvents, err := aggregate.RenameStorage("storage name set")
+	createdEvents, err := aggregate.SetStorageName("storage name set", "test")
 	assert.Nil(t, err)
 	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(events.StorageRenamed)
+	v, ok := createdEvents[0].(events.StorageNameSet)
 	assert.True(t, ok)
 	assert.Equal(t, v.Name, "storage name set")
+	assert.Equal(t, v.Reason, "test")
 }
 
 func TestRenameStorageForRemovedStorage(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{Storage: entities.Storage{Removed: true}}
-	_, err := aggregate.RenameStorage("Test storage name set")
+	_, err := aggregate.SetStorageName("Test storage name set", "")
 	assert.NotNil(t, err)
 }
 
 func TestRenameStorageWithoutName(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{}
-	_, err := aggregate.RenameStorage("")
+	_, err := aggregate.SetStorageName("", "")
 	assert.NotNil(t, err)
 }
 
 func TestRelocatedStorage(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{Storage: entities.Storage{Location: "location"}}
-	createdEvents, err := aggregate.RelocateStorage("location set")
+	createdEvents, err := aggregate.SetStorageLocation("location set", "test")
 	assert.Nil(t, err)
 	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(events.StorageRelocated)
+	v, ok := createdEvents[0].(events.StorageLocationSet)
 	assert.True(t, ok)
 	assert.Equal(t, v.Location, "location set")
+	assert.Equal(t, v.Reason, "test")
 }
 
 func TestRelocatedStorageForRemovedStorage(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{Storage: entities.Storage{Removed: true}}
-	_, err := aggregate.RelocateStorage("location set")
+	_, err := aggregate.SetStorageLocation("location set", "")
 	assert.NotNil(t, err)
 }
 
 func TestRelocateStorageWithoutLocation(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{}
-	_, err := aggregate.RelocateStorage("")
+	_, err := aggregate.SetStorageLocation("", "")
 	assert.NotNil(t, err)
 }
 
-func TestOnStorageAdded(t *testing.T) {
+func TestOnStorageCreated(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{}
-	storageAdded := &events.StorageAdded{EventModel: common.EventModel{ID: uuid.New(), Version: 1, At: time.Now()}, Name: "storage", Location: "location"}
+	storageAdded := &events.StorageCreated{EventModel: common.EventModel{ID: uuid.New(), Version: 1, At: time.Now()}}
 	err := aggregate.On(storageAdded)
 	assert.Nil(t, err)
 	assert.Equal(t, aggregate.Storage.ID, storageAdded.AggregateID())
 	assert.Equal(t, aggregate.Storage.Version, storageAdded.EventVersion())
 	assert.Equal(t, aggregate.Storage.CreatedAt, storageAdded.EventAt())
-	assert.Equal(t, aggregate.Storage.Name, "storage")
-	assert.Equal(t, aggregate.Storage.Location, "location")
+	assert.Equal(t, aggregate.Storage.UpdatedAt, storageAdded.EventAt())
 }
 
 func TestOnStorageRemoved(t *testing.T) {
@@ -124,7 +138,7 @@ func TestOnStorageRemoved(t *testing.T) {
 
 func TestOnStorageRenamed(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{Storage: entities.Storage{Name: "storage"}}
-	storageRenamed := &events.StorageRenamed{EventModel: common.EventModel{ID: uuid.New(), Version: 3, At: time.Now()}, Name: "storage name set"}
+	storageRenamed := &events.StorageNameSet{EventModel: common.EventModel{ID: uuid.New(), Version: 3, At: time.Now()}, Name: "storage name set"}
 	err := aggregate.On(storageRenamed)
 	assert.Nil(t, err)
 	assert.Equal(t, aggregate.Storage.Version, storageRenamed.EventVersion())
@@ -132,9 +146,12 @@ func TestOnStorageRenamed(t *testing.T) {
 	assert.Equal(t, aggregate.Storage.Name, "storage name set")
 }
 
-func TestOnStorageRelocated(t *testing.T) {
+func TestOnStorageLocationSet(t *testing.T) {
 	aggregate := aggregates.StorageAggregate{Storage: entities.Storage{Location: "location"}}
-	storageRelocated := &events.StorageRelocated{EventModel: common.EventModel{ID: uuid.New(), Version: 4, At: time.Now()}, Location: "location set"}
+	storageRelocated := &events.StorageLocationSet{
+		EventModel: common.EventModel{ID: uuid.New(), Version: 4, At: time.Now()},
+		Location:   "location set",
+		Reason:     "test"}
 	err := aggregate.On(storageRelocated)
 	assert.Nil(t, err)
 	assert.Equal(t, aggregate.Storage.Version, storageRelocated.EventVersion())

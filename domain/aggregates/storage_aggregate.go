@@ -15,72 +15,94 @@ type StorageAggregate struct {
 	Storage entities.Storage
 }
 
-func (s StorageAggregate) AddStorage(name string, location string) ([]common.Event, error) {
+func (s StorageAggregate) AddStorage(id uuid.UUID, name string, location string) ([]common.Event, error) {
 	if name == "" {
 		return nil, errors.New("Storage name unknown")
 	}
 	if location == "" {
 		return nil, errors.New("Storage location unknown")
 	}
-	event := events.StorageAdded{
-		EventModel: common.EventModel{ID: uuid.New(), Version: s.Storage.Version + 1, At: time.Now()},
+	nextVersion := s.Storage.Version + 1
+	storageCreated := events.StorageCreated{
+		EventModel: common.EventModel{ID: id, Version: nextVersion, At: time.Now()}}
+	createdEvents := []common.Event{storageCreated}
+	nextVersion += 1
+	storageNameSet := events.StorageNameSet{
+		EventModel: common.EventModel{ID: id, Version: nextVersion, At: time.Now()},
 		Name:       name,
-		Location:   location}
-	return []common.Event{event}, nil
+		Reason:     "initial create"}
+	createdEvents = append(createdEvents, storageNameSet)
+	nextVersion += 1
+	storageLocationSet := events.StorageLocationSet{
+		EventModel: common.EventModel{ID: id, Version: nextVersion, At: time.Now()},
+		Location:   location,
+		Reason:     "initial create"}
+	createdEvents = append(createdEvents, storageLocationSet)
+	return createdEvents, nil
 }
 
-func (s StorageAggregate) RemoveStorage() ([]common.Event, error) {
+func (s StorageAggregate) RemoveStorage(reason string) ([]common.Event, error) {
 	if s.Storage.Removed {
 		return nil, errors.New("Storage was already removed")
 	}
-	event := events.StorageRemoved{EventModel: common.EventModel{ID: s.Storage.ID, Version: s.Storage.Version + 1, At: time.Now()}}
+	if reason == "" {
+		return nil, errors.New("No reason specified")
+	}
+	event := events.StorageRemoved{
+		EventModel: common.EventModel{ID: s.Storage.ID, Version: s.Storage.Version + 1, At: time.Now()},
+		Reason:     reason}
 	return []common.Event{event}, nil
 }
 
-func (s StorageAggregate) RenameStorage(name string) ([]common.Event, error) {
+func (s StorageAggregate) SetStorageName(name string, reason string) ([]common.Event, error) {
 	if s.Storage.Removed {
 		return nil, errors.New("Storage was already removed")
 	}
 	if name == "" {
 		return nil, errors.New("Storage name unknown")
 	}
-	event := events.StorageRenamed{EventModel: common.EventModel{ID: s.Storage.ID, Version: s.Storage.Version + 1, At: time.Now()}, Name: name}
+	event := events.StorageNameSet{
+		EventModel: common.EventModel{ID: s.Storage.ID, Version: s.Storage.Version + 1, At: time.Now()},
+		Name:       name,
+		Reason:     reason}
 	return []common.Event{event}, nil
 }
 
-func (s StorageAggregate) RelocateStorage(location string) ([]common.Event, error) {
+func (s StorageAggregate) SetStorageLocation(location string, reason string) ([]common.Event, error) {
 	if s.Storage.Removed {
 		return nil, errors.New("Storage was already removed")
 	}
 	if location == "" {
 		return nil, errors.New("Storage location unknown")
 	}
-	event := events.StorageRelocated{EventModel: common.EventModel{ID: s.Storage.ID, Version: s.Storage.Version + 1, At: time.Now()}, Location: location}
+	event := events.StorageLocationSet{
+		EventModel: common.EventModel{ID: s.Storage.ID, Version: s.Storage.Version + 1, At: time.Now()},
+		Location:   location,
+		Reason:     reason}
 	return []common.Event{event}, nil
 }
 
 func (s *StorageAggregate) On(event common.Event) error {
 	switch evt := event.(type) {
-	case *events.StorageAdded:
-		s.onStorageAdded(*evt)
+	case *events.StorageCreated:
+		s.onStorageCreated(*evt)
 	case *events.StorageRemoved:
 		s.onStorageRemoved(*evt)
-	case *events.StorageRenamed:
-		s.onStorageRenamed(*evt)
-	case *events.StorageRelocated:
-		s.onStorageRelocated(*evt)
+	case *events.StorageNameSet:
+		s.onStorageNameSet(*evt)
+	case *events.StorageLocationSet:
+		s.onStorageLocationSet(*evt)
 	default:
 		return fmt.Errorf("Unhandled event %v", evt)
 	}
 	return nil
 }
 
-func (s *StorageAggregate) onStorageAdded(event events.StorageAdded) {
+func (s *StorageAggregate) onStorageCreated(event events.StorageCreated) {
 	s.Storage.ID = event.AggregateID()
 	s.Storage.Version = event.EventVersion()
 	s.Storage.CreatedAt = event.EventAt()
-	s.Storage.Name = event.Name
-	s.Storage.Location = event.Location
+	s.Storage.UpdatedAt = event.EventAt()
 }
 
 func (s *StorageAggregate) onStorageRemoved(event events.StorageRemoved) {
@@ -89,13 +111,13 @@ func (s *StorageAggregate) onStorageRemoved(event events.StorageRemoved) {
 	s.Storage.Removed = true
 }
 
-func (s *StorageAggregate) onStorageRenamed(event events.StorageRenamed) {
+func (s *StorageAggregate) onStorageNameSet(event events.StorageNameSet) {
 	s.Storage.Version = event.EventVersion()
 	s.Storage.UpdatedAt = event.EventAt()
 	s.Storage.Name = event.Name
 }
 
-func (s *StorageAggregate) onStorageRelocated(event events.StorageRelocated) {
+func (s *StorageAggregate) onStorageLocationSet(event events.StorageLocationSet) {
 	s.Storage.Version = event.EventVersion()
 	s.Storage.UpdatedAt = event.EventAt()
 	s.Storage.Location = event.Location
