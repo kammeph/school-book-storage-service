@@ -8,10 +8,13 @@ import (
 
 type Storage struct {
 	ID        uuid.UUID
-	Version   int
 	Name      string
 	Location  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Removed   bool
+}
+
+func NewStorage(id uuid.UUID, timeStamp time.Time) Storage {
+	return Storage{ID: id, CreatedAt: timeStamp, UpdatedAt: timeStamp}
 }
