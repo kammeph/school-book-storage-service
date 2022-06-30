@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/application/common"
-	serializer "github.com/kammeph/school-book-storage-service/application/serializers"
 	domain "github.com/kammeph/school-book-storage-service/domain/common"
+	"github.com/kammeph/school-book-storage-service/infrastructure/serializers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -118,7 +118,7 @@ func (s *memoryStore) Load(ctx context.Context, aggregateID uuid.UUID) ([]common
 }
 
 func TestNew(t *testing.T) {
-	repository := common.NewRepository(&Entity{}, &memoryStore{eventsById: map[string][]common.Record{}}, serializer.NewJSONSerializer(), &EntityCommandHandler{})
+	repository := common.NewRepository(&Entity{}, &memoryStore{eventsById: map[string][]common.Record{}}, serializers.NewJSONSerializer(), &EntityCommandHandler{})
 	aggregate := repository.NewAggregate()
 	assert.NotNil(t, repository)
 	assert.Equal(t, aggregate, &Entity{})
@@ -127,7 +127,7 @@ func TestNew(t *testing.T) {
 func TestSave(t *testing.T) {
 	ctx := context.Background()
 	entityID := uuid.New()
-	repository := common.NewRepository(&Entity{}, &memoryStore{eventsById: map[string][]common.Record{}}, serializer.NewJSONSerializer(EntityCreated{}, EntityNameSet{}), &EntityCommandHandler{})
+	repository := common.NewRepository(&Entity{}, &memoryStore{eventsById: map[string][]common.Record{}}, serializers.NewJSONSerializer(EntityCreated{}, EntityNameSet{}), &EntityCommandHandler{})
 	createEntity := CreateEntity{CommandModel: common.CommandModel{ID: entityID}}
 	setEntityName := SetEntityName{CommandModel: common.CommandModel{ID: entityID}, Name: "Test"}
 	err := repository.Save(ctx, createEntity)
