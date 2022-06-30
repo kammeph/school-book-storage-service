@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kammeph/school-book-storage-service/application/serializers"
 	domain "github.com/kammeph/school-book-storage-service/domain/common"
+	"github.com/kammeph/school-book-storage-service/infrastructure/serializers"
 	"github.com/stretchr/testify/assert"
 )
 
