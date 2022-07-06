@@ -9,24 +9,24 @@ import (
 )
 
 type Repository struct {
-	prototype      reflect.Type
-	store          Store
-	serializer     Serializer
-	commandHandler CommandHandler
-	observers      []func(common.Event)
+	prototype  reflect.Type
+	store      Store
+	serializer Serializer
+	observers  []func(common.Event)
 }
 
-func NewRepository(prototype common.Aggregate, store Store, serializer Serializer, commandHandler CommandHandler) *Repository {
+func NewRepository(prototype common.Aggregate, store Store, serializer Serializer) *Repository {
 	t := reflect.TypeOf(prototype)
 	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
-
-	return &Repository{prototype: t, store: store, serializer: serializer, commandHandler: commandHandler}
+	return &Repository{prototype: t, store: store, serializer: serializer}
 }
 
-func (r *Repository) NewAggregate() common.Aggregate {
-	return reflect.New(r.prototype).Interface().(common.Aggregate)
+func (r *Repository) NewAggregate(id uuid.UUID) common.Aggregate {
+	aggregate := reflect.New(r.prototype).Interface().(common.Aggregate)
+	aggregate.SetAggregateID(id)
+	return aggregate
 }
 
 func (r *Repository) Load(ctx context.Context, aggregateID uuid.UUID) (common.Aggregate, error) {
@@ -35,7 +35,7 @@ func (r *Repository) Load(ctx context.Context, aggregateID uuid.UUID) (common.Ag
 		return nil, err
 	}
 
-	aggregate := r.NewAggregate()
+	aggregate := r.NewAggregate(aggregateID)
 	if records == nil || len(records) == 0 {
 		return aggregate, nil
 	}
@@ -53,22 +53,9 @@ func (r *Repository) Load(ctx context.Context, aggregateID uuid.UUID) (common.Ag
 	return aggregate, nil
 }
 
-func (r *Repository) Save(ctx context.Context, command Command) error {
-	aggregate, err := r.Load(ctx, command.AggregateID())
-	if err != nil {
-		return nil
-	}
-	if aggregate == nil {
-		aggregate = r.NewAggregate()
-	}
-	domainEvents, err := r.commandHandler.Apply(ctx, aggregate, command)
-	if err != nil {
-		return nil
-	}
-
-	aggregateID := domainEvents[0].AggregateID()
+func (r *Repository) Save(ctx context.Context, aggregate common.Aggregate) error {
 	var records []Record
-	for _, event := range domainEvents {
+	for _, event := range aggregate.DomainEvents() {
 		record, err := r.serializer.MarshalEvent(event)
 		if err != nil {
 			return nil
@@ -81,5 +68,5 @@ func (r *Repository) Save(ctx context.Context, command Command) error {
 		}
 	}
 
-	return r.store.Save(ctx, aggregateID, records...)
+	return r.store.Save(ctx, aggregate.AggregateID(), records...)
 }

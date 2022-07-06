@@ -2,7 +2,6 @@ package common_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -14,9 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type EntityAggregate struct {
+	domain.AggregateModel
+	Entity Entity
+}
+
 type Entity struct {
 	ID        uuid.UUID
-	Version   int
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -24,6 +27,7 @@ type Entity struct {
 
 type EntityCreated struct {
 	domain.EventModel
+	EntityID uuid.UUID
 }
 
 type EntityNameSet struct {
@@ -31,37 +35,17 @@ type EntityNameSet struct {
 	Name string
 }
 
-func (e *Entity) CreateEntity(id uuid.UUID) ([]domain.Event, error) {
-	return []domain.Event{
-			EntityCreated{
-				EventModel: domain.EventModel{
-					ID:      id,
-					Version: e.Version + 1,
-					At:      time.Now()}}},
-		nil
-}
-
-func (e *Entity) SetEntityName(name string) ([]domain.Event, error) {
-	return []domain.Event{
-			EntityNameSet{
-				EventModel: domain.EventModel{
-					ID:      e.ID,
-					Version: e.Version + 1,
-					At:      time.Now()}, Name: name}},
-		nil
-}
-
-func (e *Entity) On(event domain.Event) error {
+func (e *EntityAggregate) On(event domain.Event) error {
 	switch v := event.(type) {
 	case *EntityCreated:
 		e.ID = v.AggregateID()
 		e.Version = v.EventVersion()
-		e.CreatedAt = v.EventAt()
-		e.UpdatedAt = v.EventAt()
+		e.Entity.ID = v.EntityID
+		e.Entity.CreatedAt = v.EventAt()
 	case *EntityNameSet:
 		e.Version = v.EventVersion()
-		e.UpdatedAt = v.EventAt()
-		e.Name = v.Name
+		e.Entity.Name = v.Name
+		e.Entity.UpdatedAt = v.EventAt()
 	default:
 		return fmt.Errorf("Unknown event type: %t", event)
 	}
@@ -76,24 +60,6 @@ type CreateEntity struct {
 type SetEntityName struct {
 	common.CommandModel
 	Name string
-}
-
-type EntityCommandHandler struct {
-}
-
-func (h *EntityCommandHandler) Apply(ctx context.Context, aggregate domain.Aggregate, command common.Command) ([]domain.Event, error) {
-	entity, ok := aggregate.(*Entity)
-	if !ok {
-		return nil, fmt.Errorf("Incorrect type for aggregate: %t", aggregate)
-	}
-	switch c := command.(type) {
-	case CreateEntity:
-		return entity.CreateEntity(c.AggregateID())
-	case SetEntityName:
-		return entity.SetEntityName(c.Name)
-	default:
-		return nil, errors.New("Unapplied command")
-	}
 }
 
 type memoryStore struct {
@@ -118,34 +84,56 @@ func (s *memoryStore) Load(ctx context.Context, aggregateID uuid.UUID) ([]common
 }
 
 func TestNew(t *testing.T) {
-	repository := common.NewRepository(&Entity{}, &memoryStore{eventsById: map[string][]common.Record{}}, serializers.NewJSONSerializer(), &EntityCommandHandler{})
-	aggregate := repository.NewAggregate()
+	repository := common.NewRepository(
+		&EntityAggregate{},
+		&memoryStore{eventsById: map[string][]common.Record{}},
+		serializers.NewJSONSerializer())
 	assert.NotNil(t, repository)
-	assert.Equal(t, aggregate, &Entity{})
+}
+
+func TestLoad(t *testing.T) {
+	ctx := context.Background()
+	aggregateID := uuid.New()
+	repository := common.NewRepository(
+		&EntityAggregate{},
+		&memoryStore{eventsById: map[string][]common.Record{}},
+		serializers.NewJSONSerializer(
+			EntityCreated{},
+			EntityNameSet{}))
+	aggregate, err := repository.Load(ctx, aggregateID)
+	assert.Nil(t, err)
+	assert.NotNil(t, aggregate)
+	assert.Equal(t, aggregate.AggregateID(), aggregateID)
+	_, ok := aggregate.(*EntityAggregate)
+	assert.True(t, ok)
 }
 
 func TestSave(t *testing.T) {
 	ctx := context.Background()
-	entityID := uuid.New()
-	repository := common.NewRepository(&Entity{}, &memoryStore{eventsById: map[string][]common.Record{}}, serializers.NewJSONSerializer(EntityCreated{}, EntityNameSet{}), &EntityCommandHandler{})
-	createEntity := CreateEntity{CommandModel: common.CommandModel{ID: entityID}}
-	setEntityName := SetEntityName{CommandModel: common.CommandModel{ID: entityID}, Name: "Test"}
-	err := repository.Save(ctx, createEntity)
+	aggregateID := uuid.New()
+	repository := common.NewRepository(
+		&EntityAggregate{},
+		&memoryStore{eventsById: map[string][]common.Record{}},
+		serializers.NewJSONSerializer(
+			EntityCreated{},
+			EntityNameSet{}))
+	aggregate, err := repository.Load(ctx, aggregateID)
 	assert.Nil(t, err)
-	aggregate, err := repository.Load(ctx, entityID)
-	entityAfterCreate, ok := aggregate.(*Entity)
-	assert.Nil(t, err)
-	assert.True(t, ok)
 	assert.NotNil(t, aggregate)
-	assert.Equal(t, entityAfterCreate.ID, entityID)
-	assert.Equal(t, entityAfterCreate.Version, 1)
-	assert.NotZero(t, entityAfterCreate.CreatedAt)
-	err = repository.Save(ctx, setEntityName)
-	newaggregate, err := repository.Load(ctx, entityID)
-	entityAfterNameSet, ok := newaggregate.(*Entity)
-	assert.Nil(t, err)
+	a, ok := aggregate.(*EntityAggregate)
 	assert.True(t, ok)
-	assert.Equal(t, entityAfterNameSet.Version, 2)
-	assert.NotZero(t, entityAfterNameSet.UpdatedAt)
-	assert.Equal(t, entityAfterNameSet.Name, "Test")
+	entityID := uuid.New()
+	createdEvent := EntityCreated{EventModel: domain.EventModel{ID: aggregateID, Version: 1, At: time.Now()}, EntityID: entityID}
+	a.Events = append(a.Events, createdEvent)
+	nameSetEvent := EntityNameSet{EventModel: domain.EventModel{ID: aggregateID, Version: 2, At: time.Now()}, Name: "entity"}
+	a.Events = append(a.Events, nameSetEvent)
+	repository.Save(ctx, a)
+	aggregate, err = repository.Load(ctx, aggregateID)
+	assert.Nil(t, err)
+	assert.NotNil(t, aggregate)
+	a, ok = aggregate.(*EntityAggregate)
+	assert.True(t, ok)
+	assert.Equal(t, a.AggregateID(), aggregateID)
+	assert.Equal(t, a.Entity.ID, entityID)
+	assert.Equal(t, a.Entity.Name, "entity")
 }
