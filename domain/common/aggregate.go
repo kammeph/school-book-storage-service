@@ -12,6 +12,10 @@ func (a AggregateModel) AggregateID() uuid.UUID {
 	return a.ID
 }
 
+func (a *AggregateModel) SetAggregateID(id uuid.UUID) {
+	a.ID = id
+}
+
 func (a AggregateModel) AggregateVersion() int {
 	return a.Version
 }
@@ -22,6 +26,7 @@ func (a AggregateModel) DomainEvents() []Event {
 
 type Aggregate interface {
 	AggregateID() uuid.UUID
+	SetAggregateID(uuid.UUID)
 	AggregateVersion() int
 	DomainEvents() []Event
 	On(event Event) error

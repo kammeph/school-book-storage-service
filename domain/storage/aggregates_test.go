@@ -29,18 +29,19 @@ func newTestAggregate() (uuid.UUID, storage.SchoolAggregateRoot) {
 
 func TestAddStorage(t *testing.T) {
 	aggregate := storage.NewSchoolAggregateRoot()
-	err := aggregate.AddStorage("storage", "location")
+	storageID, err := aggregate.AddStorage("storage", "location")
 	createdEvents := aggregate.DomainEvents()
 	assert.Nil(t, err)
 	assert.Len(t, createdEvents, 3)
-	created, createdOk := createdEvents[0].(storage.StorageCreated)
+	assert.NotZero(t, storageID)
+	created, createdOk := createdEvents[0].(*storage.StorageCreated)
 	assert.True(t, createdOk)
 	assert.Equal(t, created.Version, 1)
-	nameSet, nameSetOk := createdEvents[1].(storage.StorageNameSet)
+	nameSet, nameSetOk := createdEvents[1].(*storage.StorageNameSet)
 	assert.True(t, nameSetOk)
 	assert.Equal(t, nameSet.Version, 2)
 	assert.Equal(t, nameSet.Name, "storage")
-	locationSet, locationOk := createdEvents[2].(storage.StorageLocationSet)
+	locationSet, locationOk := createdEvents[2].(*storage.StorageLocationSet)
 	assert.True(t, locationOk)
 	assert.Equal(t, locationSet.Version, 3)
 	assert.Equal(t, locationSet.Location, "location")
@@ -49,21 +50,26 @@ func TestAddStorage(t *testing.T) {
 
 func TestAddStoragForExistingName(t *testing.T) {
 	_, aggregate := newTestAggregate()
-	err := aggregate.AddStorage("storage", "location")
+	storageID, err := aggregate.AddStorage("storage", "location")
 	assert.NotNil(t, err)
 	assert.Equal(t, err, storage.StorageAlreadyExistsError("storage", "location"))
+	assert.Zero(t, storageID)
 }
 
 func TestAddStorageWithoutName(t *testing.T) {
 	aggregate := storage.NewSchoolAggregateRoot()
-	err := aggregate.AddStorage("", "location")
+	storageID, err := aggregate.AddStorage("", "location")
 	assert.NotNil(t, err)
+	assert.Zero(t, storageID)
+
 }
 
 func TestAddStorageWithoutLocation(t *testing.T) {
 	aggregate := storage.NewSchoolAggregateRoot()
-	err := aggregate.AddStorage("storage", "")
+	storageID, err := aggregate.AddStorage("storage", "")
 	assert.NotNil(t, err)
+	assert.Zero(t, storageID)
+
 }
 
 func TestRemoveStorage(t *testing.T) {
@@ -72,7 +78,7 @@ func TestRemoveStorage(t *testing.T) {
 	createdEvents := aggregate.DomainEvents()
 	assert.Nil(t, err)
 	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(storage.StorageRemoved)
+	v, ok := createdEvents[0].(*storage.StorageRemoved)
 	assert.True(t, ok)
 	assert.Equal(t, v.Version, 1)
 	assert.Equal(t, v.Reason, "test")
@@ -100,7 +106,7 @@ func TestSetStorageName(t *testing.T) {
 	createdEvents := aggregate.DomainEvents()
 	assert.Nil(t, err)
 	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(storage.StorageNameSet)
+	v, ok := createdEvents[0].(*storage.StorageNameSet)
 	assert.True(t, ok)
 	assert.Equal(t, v.Name, "storage name set")
 	assert.Equal(t, v.Reason, "test")
@@ -142,7 +148,7 @@ func TestSetStorageLocation(t *testing.T) {
 	createdEvents := aggregate.DomainEvents()
 	assert.Nil(t, err)
 	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(storage.StorageLocationSet)
+	v, ok := createdEvents[0].(*storage.StorageLocationSet)
 	assert.True(t, ok)
 	assert.Equal(t, v.Location, "location set")
 	assert.Equal(t, v.Reason, "test")

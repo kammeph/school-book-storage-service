@@ -23,5 +23,5 @@ func StorageIDNotFoundError(id uuid.UUID) error {
 }
 
 func UnknownEventError(event common.Event) error {
-	return fmt.Errorf("Unhandled event %v", event)
+	return fmt.Errorf("Unhandled event %T", event)
 }

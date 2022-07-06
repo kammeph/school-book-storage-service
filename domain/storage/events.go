@@ -10,11 +10,10 @@ import (
 type StorageCreated struct {
 	common.EventModel
 	StorageID uuid.UUID
-	SchoolID  uuid.UUID
 }
 
-func NewStorageCreated(aggregate SchoolAggregateRoot, storageID uuid.UUID) StorageCreated {
-	return StorageCreated{
+func NewStorageCreated(aggregate SchoolAggregateRoot, storageID uuid.UUID) *StorageCreated {
+	return &StorageCreated{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
@@ -29,8 +28,8 @@ type StorageRemoved struct {
 	Reason    string
 }
 
-func NewStorageRemoved(aggregate SchoolAggregateRoot, storageID uuid.UUID, reason string) StorageRemoved {
-	return StorageRemoved{
+func NewStorageRemoved(aggregate SchoolAggregateRoot, storageID uuid.UUID, reason string) *StorageRemoved {
+	return &StorageRemoved{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
@@ -47,8 +46,8 @@ type StorageNameSet struct {
 	Reason    string
 }
 
-func NewStorageNameSet(aggregate SchoolAggregateRoot, storageID uuid.UUID, name, reason string) StorageNameSet {
-	return StorageNameSet{
+func NewStorageNameSet(aggregate SchoolAggregateRoot, storageID uuid.UUID, name, reason string) *StorageNameSet {
+	return &StorageNameSet{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
@@ -66,8 +65,8 @@ type StorageLocationSet struct {
 	Reason    string
 }
 
-func NewStorageLocationSet(aggregate SchoolAggregateRoot, storageID uuid.UUID, location, reason string) StorageLocationSet {
-	return StorageLocationSet{
+func NewStorageLocationSet(aggregate SchoolAggregateRoot, storageID uuid.UUID, location, reason string) *StorageLocationSet {
+	return &StorageLocationSet{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
