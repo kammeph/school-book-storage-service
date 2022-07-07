@@ -23,7 +23,8 @@ func newTestAggregate() (uuid.UUID, storage.SchoolAggregateRoot) {
 		storage.Storage{
 			ID:       storageID,
 			Name:     "storage",
-			Location: "location"})
+			Location: "location",
+		})
 	return storageID, aggregate
 }
 
@@ -61,7 +62,7 @@ func TestAddStorageWithoutName(t *testing.T) {
 	storageID, err := aggregate.AddStorage("", "location")
 	assert.NotNil(t, err)
 	assert.Zero(t, storageID)
-
+	assert.Equal(t, err, storage.StorageNameNotSetError)
 }
 
 func TestAddStorageWithoutLocation(t *testing.T) {
@@ -69,7 +70,7 @@ func TestAddStorageWithoutLocation(t *testing.T) {
 	storageID, err := aggregate.AddStorage("storage", "")
 	assert.NotNil(t, err)
 	assert.Zero(t, storageID)
-
+	assert.Equal(t, err, storage.StorageLocationNotSetError)
 }
 
 func TestRemoveStorage(t *testing.T) {

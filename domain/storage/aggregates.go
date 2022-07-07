@@ -182,6 +182,17 @@ func (a *SchoolAggregateRoot) RemoveStorageByID(id uuid.UUID) error {
 	return nil
 }
 
+func (a SchoolAggregateRoot) GetStorageByName(name string) (*Storage, error) {
+	storages := a.getStoragesByName(name)
+	if len(storages) == 0 {
+		return nil, StorageByNameNotFoundError(name)
+	}
+	if len(storages) > 1 {
+		return nil, MultipleStoragesWithNameFoundError(name)
+	}
+	return &storages[0], nil
+}
+
 func (a SchoolAggregateRoot) getStoragesByName(name string) []Storage {
 	storages := []Storage{}
 	for _, storage := range a.School.Storages {

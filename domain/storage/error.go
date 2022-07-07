@@ -22,6 +22,14 @@ func StorageIDNotFoundError(id uuid.UUID) error {
 	return fmt.Errorf("Storage with ID %s not found", id)
 }
 
+func StorageByNameNotFoundError(name string) error {
+	return fmt.Errorf("Storage with the name %s does not exist", name)
+}
+
+func MultipleStoragesWithNameFoundError(name string) error {
+	return fmt.Errorf("There are more than one storage with the name %s", name)
+}
+
 func UnknownEventError(event common.Event) error {
 	return fmt.Errorf("Unhandled event %T", event)
 }
