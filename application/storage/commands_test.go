@@ -45,7 +45,7 @@ func (s *memoryStore) Load(ctx context.Context, aggregateID uuid.UUID) ([]common
 var repository = common.NewRepository(
 	&domain.SchoolAggregateRoot{},
 	&memoryStore{eventsById: map[string][]common.Record{}},
-	serializers.NewJSONSerializer(
+	serializers.NewJSONSerializerWithEvents(
 		domain.StorageCreated{},
 		domain.StorageRemoved{},
 		domain.StorageNameSet{},
@@ -56,7 +56,7 @@ var repository = common.NewRepository(
 var entityRepository = common.NewRepository(
 	&EntityAggregate{},
 	&memoryStore{eventsById: map[string][]common.Record{}},
-	serializers.NewJSONSerializer(),
+	serializers.NewJSONSerializerWithEvents(),
 )
 
 func TestHandleAddStorage(t *testing.T) {
@@ -74,9 +74,9 @@ func TestHandleRemoveStorage(t *testing.T) {
 	commandId := uuid.New()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	storageID, err := addHandler.Handle(ctx, add)
+	dto, err := addHandler.Handle(ctx, add)
 	removeHandler := storage.NewRemoveStorageCommandHandler(repository)
-	remove := storage.RemoveStorage{CommandModel: common.CommandModel{ID: commandId}, StorageID: storageID, Reason: "test"}
+	remove := storage.RemoveStorage{CommandModel: common.CommandModel{ID: commandId}, StorageID: dto.StorageID, Reason: "test"}
 	err = removeHandler.Handle(ctx, remove)
 	assert.Nil(t, err)
 }
@@ -86,13 +86,14 @@ func TestHandleSetStorageName(t *testing.T) {
 	commandId := uuid.New()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	storageID, err := addHandler.Handle(ctx, add)
+	dto, err := addHandler.Handle(ctx, add)
 	setNameHandler := storage.NewSetStorageNameCommandHandler(repository)
 	setName := storage.SetStorageName{
 		CommandModel: common.CommandModel{ID: commandId},
-		StorageID:    storageID,
+		StorageID:    dto.StorageID,
 		Name:         "storage name set",
-		Reason:       "test"}
+		Reason:       "test",
+	}
 	err = setNameHandler.Handle(ctx, setName)
 	assert.Nil(t, err)
 }
@@ -102,13 +103,14 @@ func TestHandleSetStorageLocation(t *testing.T) {
 	commandId := uuid.New()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	storageID, err := addHandler.Handle(ctx, add)
+	dto, err := addHandler.Handle(ctx, add)
 	setLocationHandler := storage.NewSetStorageLocationCommandHandler(repository)
 	setLocation := storage.SetStorageLocation{
 		CommandModel: common.CommandModel{ID: commandId},
-		StorageID:    storageID,
+		StorageID:    dto.StorageID,
 		Location:     "location set",
-		Reason:       "test"}
+		Reason:       "test",
+	}
 	err = setLocationHandler.Handle(ctx, setLocation)
 	assert.Nil(t, err)
 }

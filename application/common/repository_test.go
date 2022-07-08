@@ -87,7 +87,7 @@ func TestNew(t *testing.T) {
 	repository := common.NewRepository(
 		&EntityAggregate{},
 		&memoryStore{eventsById: map[string][]common.Record{}},
-		serializers.NewJSONSerializer())
+		serializers.NewJSONSerializerWithEvents())
 	assert.NotNil(t, repository)
 }
 
@@ -97,7 +97,7 @@ func TestLoad(t *testing.T) {
 	repository := common.NewRepository(
 		&EntityAggregate{},
 		&memoryStore{eventsById: map[string][]common.Record{}},
-		serializers.NewJSONSerializer(
+		serializers.NewJSONSerializerWithEvents(
 			EntityCreated{},
 			EntityNameSet{}))
 	aggregate, err := repository.Load(ctx, aggregateID)
@@ -114,7 +114,7 @@ func TestSave(t *testing.T) {
 	repository := common.NewRepository(
 		&EntityAggregate{},
 		&memoryStore{eventsById: map[string][]common.Record{}},
-		serializers.NewJSONSerializer(
+		serializers.NewJSONSerializerWithEvents(
 			EntityCreated{},
 			EntityNameSet{}))
 	aggregate, err := repository.Load(ctx, aggregateID)

@@ -16,8 +16,8 @@ func prepareAggregate() (uuid.UUID, uuid.UUID, error) {
 	commandId := uuid.New()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	storageID, err := handler.Handle(ctx, add)
-	return commandId, storageID, err
+	dto, err := handler.Handle(ctx, add)
+	return commandId, dto.StorageID, err
 }
 
 func TestGetAllStorages(t *testing.T) {
