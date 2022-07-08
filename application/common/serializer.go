@@ -5,6 +5,7 @@ import (
 )
 
 type Serializer interface {
+	Bind(events ...common.Event)
 	MarshalEvent(event common.Event) (Record, error)
 	UnmarshalEvent(record Record) (common.Event, error)
 }
