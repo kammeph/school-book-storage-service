@@ -8,8 +8,26 @@ import (
 	domain "github.com/kammeph/school-book-storage-service/domain/storage"
 )
 
+type StorageQueryHandlers struct {
+	GetAllHandler           GetAllStoragesQueryHandler
+	GetStorageByIDHandler   GetStorageByIDQueryHandler
+	GetStorageByNameHandler GetStorageByNameQueryHandler
+}
+
+func NewStorageQueryHandlers(repository *common.Repository) StorageQueryHandlers {
+	return StorageQueryHandlers{
+		GetAllHandler:           NewGetAllStoragesQueryHandler(repository),
+		GetStorageByIDHandler:   NewGetStorageByIDQueryHandler(repository),
+		GetStorageByNameHandler: NewGetStorageByNameQueryHandler(repository),
+	}
+}
+
 type GetAllStorages struct {
 	common.QueryModel
+}
+
+func NewGetAllStorages(aggregateID uuid.UUID) GetAllStorages {
+	return GetAllStorages{QueryModel: common.QueryModel{ID: aggregateID}}
 }
 
 type GetAllStoragesQueryHandler struct {
@@ -29,12 +47,19 @@ func (h GetAllStoragesQueryHandler) Handle(ctx context.Context, query GetAllStor
 	if !ok {
 		return nil, IncorrectAggregateTypeError(aggregate)
 	}
+	if schoolAggregate.School.Storages == nil {
+		schoolAggregate.School.Storages = []domain.Storage{}
+	}
 	return schoolAggregate.School.Storages, nil
 }
 
 type GetStorageByID struct {
 	common.QueryModel
 	StorageID uuid.UUID
+}
+
+func NewGetStorageByID(aggregateID, storageID uuid.UUID) GetStorageByID {
+	return GetStorageByID{QueryModel: common.QueryModel{ID: aggregateID}, StorageID: storageID}
 }
 
 type GetStorageByIDQueryHandler struct {
@@ -64,6 +89,10 @@ func (h GetStorageByIDQueryHandler) Handle(ctx context.Context, query GetStorage
 type GetStorageByName struct {
 	common.QueryModel
 	Name string
+}
+
+func NewGetStorageByName(aggregateID uuid.UUID, name string) GetStorageByName {
+	return GetStorageByName{QueryModel: common.QueryModel{ID: aggregateID}, Name: name}
 }
 
 type GetStorageByNameQueryHandler struct {
