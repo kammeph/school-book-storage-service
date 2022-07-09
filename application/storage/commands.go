@@ -25,8 +25,8 @@ func NewStorageCommandHandlers(repository *common.Repository) StorageCommandHand
 
 type AddStorage struct {
 	common.CommandModel
-	Name     string
-	Location string
+	Name     string `json:"name"`
+	Location string `json:"location"`
 }
 
 type AddStorageCommandHandler struct {
@@ -56,8 +56,8 @@ func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorage
 
 type RemoveStorage struct {
 	common.CommandModel
-	StorageID string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Reason    string `json:"reason"`
 }
 
 type RemoveStorageCommandHandler struct {
@@ -86,9 +86,9 @@ func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveS
 
 type SetStorageName struct {
 	common.CommandModel
-	StorageID string
-	Name      string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Name      string `json:"name"`
+	Reason    string `json:"reason"`
 }
 
 type SetStorageNameCommandHandler struct {
@@ -117,9 +117,9 @@ func (h SetStorageNameCommandHandler) Handle(ctx context.Context, command SetSto
 
 type SetStorageLocation struct {
 	common.CommandModel
-	StorageID string
-	Location  string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Location  string `json:"location"`
+	Reason    string `json:"reason"`
 }
 
 type SetStorageLocationCommandHandler struct {

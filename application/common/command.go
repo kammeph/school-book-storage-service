@@ -5,7 +5,7 @@ type Command interface {
 }
 
 type CommandModel struct {
-	ID string
+	ID string `json:"aggregateId"`
 }
 
 func (c CommandModel) AggregateID() string {
