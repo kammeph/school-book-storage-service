@@ -17,7 +17,7 @@ type EntityNameSet struct {
 func TestJSONSerializer(t *testing.T) {
 	event := EntityNameSet{
 		EventModel: domain.EventModel{
-			ID: uuid.New(), Version: 5,
+			ID: uuid.New().String(), Version: 5,
 		}, Name: "Test",
 	}
 	serializer := serializers.NewJSONSerializerWithEvents(event)

@@ -35,12 +35,12 @@ func TestPostgresStoreLoad(t *testing.T) {
 	assert.Nil(t, err)
 	store := stores.NewPostgressStore("test", db)
 
-	id := uuid.New()
+	aggregateID := uuid.New().String()
 	rows := sqlmock.NewRows([]string{"data", "version"}).AddRow("My Data", 1).AddRow("Second Data", 2)
-	mock.ExpectPrepare(selectSql).ExpectQuery().WithArgs(id.String(), 0, math.MaxInt32).WillReturnRows(rows)
+	mock.ExpectPrepare(selectSql).ExpectQuery().WithArgs(aggregateID, 0, math.MaxInt32).WillReturnRows(rows)
 
 	ctx := context.Background()
-	records, err := store.Load(ctx, id)
+	records, err := store.Load(ctx, aggregateID)
 	assert.Nil(t, err)
 	assert.Len(t, records, 2)
 }
@@ -53,15 +53,15 @@ func TestPostgresStoreSave(t *testing.T) {
 	assert.Nil(t, err)
 	record := common.Record{Version: 1, Data: data}
 	store := stores.NewPostgressStore("test", db)
-	id := uuid.New()
+	aggregateID := uuid.New().String()
 
 	rows := sqlmock.NewRows([]string{"version"})
 	mock.ExpectPrepare(maxVersionSql).ExpectQuery().WillReturnRows(rows)
 
-	mock.ExpectPrepare(insertSql).ExpectExec().WithArgs(id.String(), data, 1)
+	mock.ExpectPrepare(insertSql).ExpectExec().WithArgs(aggregateID, data, 1)
 
 	ctx := context.Background()
-	err = store.Save(ctx, id, record)
+	err = store.Save(ctx, aggregateID, record)
 	assert.Nil(t, err)
 }
 
@@ -73,15 +73,15 @@ func TestPostgresStoreSaveWithMaxVersion(t *testing.T) {
 	assert.Nil(t, err)
 	record := common.Record{Version: 4, Data: data}
 	store := stores.NewPostgressStore("test", db)
-	id := uuid.New()
+	aggregateID := uuid.New().String()
 
 	rows := sqlmock.NewRows([]string{"version"}).AddRow(3)
 	mock.ExpectPrepare(maxVersionSql).ExpectQuery().WillReturnRows(rows)
 
-	mock.ExpectPrepare(insertSql).ExpectExec().WithArgs(id.String(), data, 1)
+	mock.ExpectPrepare(insertSql).ExpectExec().WithArgs(aggregateID, data, 1)
 
 	ctx := context.Background()
-	err = store.Save(ctx, id, record)
+	err = store.Save(ctx, aggregateID, record)
 	assert.Nil(t, err)
 }
 
@@ -93,14 +93,14 @@ func TestProstgresSaveWithWrongVersion(t *testing.T) {
 	assert.Nil(t, err)
 	record := common.Record{Version: 1, Data: data}
 	store := stores.NewPostgressStore("test", db)
-	id := uuid.New()
+	aggregateID := uuid.New().String()
 
 	rows := sqlmock.NewRows([]string{"version"}).AddRow(2)
 	mock.ExpectPrepare(maxVersionSql).ExpectQuery().WillReturnRows(rows)
 
-	mock.ExpectPrepare(insertSql).ExpectExec().WithArgs(id.String(), data, 1)
+	mock.ExpectPrepare(insertSql).ExpectExec().WithArgs(aggregateID, data, 1)
 
 	ctx := context.Background()
-	err = store.Save(ctx, id, record)
+	err = store.Save(ctx, aggregateID, record)
 	assert.NotNil(t, err)
 }

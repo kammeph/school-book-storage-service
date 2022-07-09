@@ -1,15 +1,13 @@
 package common
 
-import "github.com/google/uuid"
-
 type Command interface {
-	AggregateID() uuid.UUID
+	AggregateID() string
 }
 
 type CommandModel struct {
-	ID uuid.UUID
+	ID string
 }
 
-func (c CommandModel) AggregateID() uuid.UUID {
+func (c CommandModel) AggregateID() string {
 	return c.ID
 }

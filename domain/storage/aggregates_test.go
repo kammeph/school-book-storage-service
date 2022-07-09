@@ -14,9 +14,9 @@ type UnknownEvent struct {
 	common.EventModel
 }
 
-func newTestAggregate() (uuid.UUID, storage.SchoolAggregateRoot) {
-	schoolID := uuid.New()
-	storageID := uuid.New()
+func newTestAggregate() (string, storage.SchoolAggregateRoot) {
+	schoolID := uuid.New().String()
+	storageID := uuid.New().String()
 	aggregate := storage.NewSchoolAggregateRootWithID(schoolID)
 	aggregate.School.Storages = append(
 		aggregate.School.Storages,
@@ -88,7 +88,7 @@ func TestRemoveStorage(t *testing.T) {
 
 func TestRemoveStorageNotExistsError(t *testing.T) {
 	_, aggregate := newTestAggregate()
-	unknownID := uuid.New()
+	unknownID := uuid.New().String()
 	err := aggregate.RemoveStorage(unknownID, "")
 	assert.NotNil(t, err)
 	assert.Equal(t, err, storage.StorageIDNotFoundError(unknownID))
@@ -123,7 +123,7 @@ func TestSetStorageNameStorageAlreadyExistsError(t *testing.T) {
 
 func TestSetStorageNameNotStorageExistsError(t *testing.T) {
 	_, aggregate := newTestAggregate()
-	unknownID := uuid.New()
+	unknownID := uuid.New().String()
 	err := aggregate.SetStorageName(unknownID, "storage name set", "")
 	assert.NotNil(t, err)
 	assert.Equal(t, err, storage.StorageIDNotFoundError(unknownID))
@@ -158,7 +158,7 @@ func TestSetStorageLocation(t *testing.T) {
 
 func TestSetStorageLocationStorageNotFoundError(t *testing.T) {
 	_, aggregate := newTestAggregate()
-	unknownID := uuid.New()
+	unknownID := uuid.New().String()
 	err := aggregate.SetStorageLocation(unknownID, "location set", "")
 	assert.NotNil(t, err)
 	assert.Equal(t, err, storage.StorageIDNotFoundError(unknownID))
@@ -180,7 +180,7 @@ func TestSetStorageLocationReasonNotSetError(t *testing.T) {
 
 func TestOnStorageCreated(t *testing.T) {
 	aggregate := storage.SchoolAggregateRoot{}
-	storageID := uuid.New()
+	storageID := uuid.New().String()
 	storageCreated := storage.NewStorageCreated(aggregate, storageID)
 	err := aggregate.On(storageCreated)
 	assert.Nil(t, err)
@@ -242,7 +242,7 @@ func TestOnStorageLocationSet(t *testing.T) {
 
 func TestOnUnknownEvent(t *testing.T) {
 	_, aggregate := newTestAggregate()
-	unknownEvent := &UnknownEvent{EventModel: common.EventModel{ID: uuid.New(), Version: 4, At: time.Now()}}
+	unknownEvent := &UnknownEvent{EventModel: common.EventModel{ID: uuid.New().String(), Version: 4, At: time.Now()}}
 	err := aggregate.On(unknownEvent)
 	assert.NotNil(t, err)
 	assert.Equal(t, err, storage.UnknownEventError(unknownEvent))

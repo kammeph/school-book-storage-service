@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/application/common"
 	domain "github.com/kammeph/school-book-storage-service/domain/storage"
 )
@@ -26,7 +25,7 @@ type GetAllStorages struct {
 	common.QueryModel
 }
 
-func NewGetAllStorages(aggregateID uuid.UUID) GetAllStorages {
+func NewGetAllStorages(aggregateID string) GetAllStorages {
 	return GetAllStorages{QueryModel: common.QueryModel{ID: aggregateID}}
 }
 
@@ -55,10 +54,10 @@ func (h GetAllStoragesQueryHandler) Handle(ctx context.Context, query GetAllStor
 
 type GetStorageByID struct {
 	common.QueryModel
-	StorageID uuid.UUID
+	StorageID string
 }
 
-func NewGetStorageByID(aggregateID, storageID uuid.UUID) GetStorageByID {
+func NewGetStorageByID(aggregateID, storageID string) GetStorageByID {
 	return GetStorageByID{QueryModel: common.QueryModel{ID: aggregateID}, StorageID: storageID}
 }
 
@@ -91,7 +90,7 @@ type GetStorageByName struct {
 	Name string
 }
 
-func NewGetStorageByName(aggregateID uuid.UUID, name string) GetStorageByName {
+func NewGetStorageByName(aggregateID string, name string) GetStorageByName {
 	return GetStorageByName{QueryModel: common.QueryModel{ID: aggregateID}, Name: name}
 }
 

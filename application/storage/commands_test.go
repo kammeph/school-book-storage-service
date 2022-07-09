@@ -25,19 +25,19 @@ type memoryStore struct {
 	eventsById map[string][]common.Record
 }
 
-func (s *memoryStore) Save(ctx context.Context, aggregateID uuid.UUID, records ...common.Record) error {
-	if _, ok := s.eventsById[aggregateID.String()]; !ok {
-		s.eventsById[aggregateID.String()] = []common.Record{}
+func (s *memoryStore) Save(ctx context.Context, aggregateID string, records ...common.Record) error {
+	if _, ok := s.eventsById[aggregateID]; !ok {
+		s.eventsById[aggregateID] = []common.Record{}
 	}
-	history := append(s.eventsById[aggregateID.String()], records...)
-	s.eventsById[aggregateID.String()] = history
+	history := append(s.eventsById[aggregateID], records...)
+	s.eventsById[aggregateID] = history
 	return nil
 }
 
-func (s *memoryStore) Load(ctx context.Context, aggregateID uuid.UUID) ([]common.Record, error) {
-	_, ok := s.eventsById[aggregateID.String()]
+func (s *memoryStore) Load(ctx context.Context, aggregateID string) ([]common.Record, error) {
+	_, ok := s.eventsById[aggregateID]
 	if ok {
-		return s.eventsById[aggregateID.String()], nil
+		return s.eventsById[aggregateID], nil
 	}
 	return nil, nil
 }
@@ -61,7 +61,7 @@ var entityRepository = common.NewRepository(
 
 func TestHandleAddStorage(t *testing.T) {
 	handler := storage.NewAddStorageCommandHandler(repository)
-	commandId := uuid.New()
+	commandId := uuid.New().String()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
 	storageID, err := handler.Handle(ctx, add)
@@ -71,7 +71,7 @@ func TestHandleAddStorage(t *testing.T) {
 
 func TestHandleRemoveStorage(t *testing.T) {
 	addHandler := storage.NewAddStorageCommandHandler(repository)
-	commandId := uuid.New()
+	commandId := uuid.New().String()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
 	dto, err := addHandler.Handle(ctx, add)
@@ -83,7 +83,7 @@ func TestHandleRemoveStorage(t *testing.T) {
 
 func TestHandleSetStorageName(t *testing.T) {
 	addHandler := storage.NewAddStorageCommandHandler(repository)
-	commandId := uuid.New()
+	commandId := uuid.New().String()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
 	dto, err := addHandler.Handle(ctx, add)
@@ -100,7 +100,7 @@ func TestHandleSetStorageName(t *testing.T) {
 
 func TestHandleSetStorageLocation(t *testing.T) {
 	addHandler := storage.NewAddStorageCommandHandler(repository)
-	commandId := uuid.New()
+	commandId := uuid.New().String()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
 	dto, err := addHandler.Handle(ctx, add)
@@ -117,7 +117,7 @@ func TestHandleSetStorageLocation(t *testing.T) {
 
 func TestIncorrectAggregateError(t *testing.T) {
 	handler := storage.NewAddStorageCommandHandler(entityRepository)
-	commandId := uuid.New()
+	commandId := uuid.New().String()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
 	_, err := handler.Handle(ctx, add)

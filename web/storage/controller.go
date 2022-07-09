@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	application "github.com/kammeph/school-book-storage-service/application/common"
 	"github.com/kammeph/school-book-storage-service/application/storage"
 	"github.com/kammeph/school-book-storage-service/web/common"
@@ -77,11 +76,7 @@ func (c StorageController) GetAllStorages(w http.ResponseWriter, r *http.Request
 	ctx := context.Background()
 	defer ctx.Done()
 	path := strings.Split(r.URL.Path, "/")
-	id := path[len(path)-1]
-	aggregateID, err := uuid.Parse(id)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-	}
+	aggregateID := path[len(path)-1]
 	query := storage.NewGetAllStorages(aggregateID)
 	storages, err := c.queryHandlers.GetAllHandler.Handle(ctx, query)
 	if err != nil {
@@ -95,17 +90,9 @@ func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request
 	ctx := context.Background()
 	defer ctx.Done()
 	path := strings.Split(r.URL.Path, "/")
-	id := path[len(path)-2]
+	aggregateID := path[len(path)-2]
 	storageID := path[len(path)-1]
-	aggregateID, err := uuid.Parse(id)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-	}
-	sID, err := uuid.Parse(storageID)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-	}
-	query := storage.NewGetStorageByID(aggregateID, sID)
+	query := storage.NewGetStorageByID(aggregateID, storageID)
 	storage, err := c.queryHandlers.GetStorageByIDHandler.Handle(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -118,12 +105,8 @@ func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Reque
 	ctx := context.Background()
 	defer ctx.Done()
 	path := strings.Split(r.URL.Path, "/")
-	id := path[len(path)-2]
+	aggregateID := path[len(path)-2]
 	name := path[len(path)-1]
-	aggregateID, err := uuid.Parse(id)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-	}
 	query := storage.NewGetStorageByName(aggregateID, name)
 	storage, err := c.queryHandlers.GetStorageByNameHandler.Handle(ctx, query)
 	if err != nil {

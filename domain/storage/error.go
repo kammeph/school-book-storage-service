@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
@@ -18,7 +17,7 @@ func StorageAlreadyExistsError(name, location string) error {
 	return fmt.Errorf("Storage with name %s in location %s already exists", name, location)
 }
 
-func StorageIDNotFoundError(id uuid.UUID) error {
+func StorageIDNotFoundError(id string) error {
 	return fmt.Errorf("Storage with ID %s not found", id)
 }
 

@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/application/common"
 	"github.com/kammeph/school-book-storage-service/domain/storage"
 )
@@ -57,7 +56,7 @@ func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorage
 
 type RemoveStorage struct {
 	common.CommandModel
-	StorageID uuid.UUID
+	StorageID string
 	Reason    string
 }
 
@@ -87,7 +86,7 @@ func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveS
 
 type SetStorageName struct {
 	common.CommandModel
-	StorageID uuid.UUID
+	StorageID string
 	Name      string
 	Reason    string
 }
@@ -118,7 +117,7 @@ func (h SetStorageNameCommandHandler) Handle(ctx context.Context, command SetSto
 
 type SetStorageLocation struct {
 	common.CommandModel
-	StorageID uuid.UUID
+	StorageID string
 	Location  string
 	Reason    string
 }
