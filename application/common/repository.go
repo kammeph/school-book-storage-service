@@ -4,7 +4,6 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
@@ -23,13 +22,13 @@ func NewRepository(prototype common.Aggregate, store Store, serializer Serialize
 	return &Repository{prototype: t, store: store, serializer: serializer}
 }
 
-func (r *Repository) NewAggregate(id uuid.UUID) common.Aggregate {
+func (r *Repository) NewAggregate(id string) common.Aggregate {
 	aggregate := reflect.New(r.prototype).Interface().(common.Aggregate)
 	aggregate.SetAggregateID(id)
 	return aggregate
 }
 
-func (r *Repository) Load(ctx context.Context, aggregateID uuid.UUID) (common.Aggregate, error) {
+func (r *Repository) Load(ctx context.Context, aggregateID string) (common.Aggregate, error) {
 	records, err := r.store.Load(ctx, aggregateID)
 	if err != nil {
 		return nil, err

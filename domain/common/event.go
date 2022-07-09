@@ -2,12 +2,10 @@ package common
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Event interface {
-	AggregateID() uuid.UUID
+	AggregateID() string
 	EventVersion() int
 	EventAt() time.Time
 }
@@ -17,12 +15,12 @@ type EventTyper interface {
 }
 
 type EventModel struct {
-	ID      uuid.UUID
+	ID      string
 	Version int
 	At      time.Time
 }
 
-func (m EventModel) AggregateID() uuid.UUID {
+func (m EventModel) AggregateID() string {
 	return m.ID
 }
 

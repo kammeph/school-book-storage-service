@@ -3,16 +3,15 @@ package storage
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
 type StorageCreated struct {
 	common.EventModel
-	StorageID uuid.UUID
+	StorageID string
 }
 
-func NewStorageCreated(aggregate SchoolAggregateRoot, storageID uuid.UUID) *StorageCreated {
+func NewStorageCreated(aggregate SchoolAggregateRoot, storageID string) *StorageCreated {
 	return &StorageCreated{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
@@ -24,11 +23,11 @@ func NewStorageCreated(aggregate SchoolAggregateRoot, storageID uuid.UUID) *Stor
 
 type StorageRemoved struct {
 	common.EventModel
-	StorageID uuid.UUID
+	StorageID string
 	Reason    string
 }
 
-func NewStorageRemoved(aggregate SchoolAggregateRoot, storageID uuid.UUID, reason string) *StorageRemoved {
+func NewStorageRemoved(aggregate SchoolAggregateRoot, storageID string, reason string) *StorageRemoved {
 	return &StorageRemoved{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
@@ -41,12 +40,12 @@ func NewStorageRemoved(aggregate SchoolAggregateRoot, storageID uuid.UUID, reaso
 
 type StorageNameSet struct {
 	common.EventModel
-	StorageID uuid.UUID
+	StorageID string
 	Name      string
 	Reason    string
 }
 
-func NewStorageNameSet(aggregate SchoolAggregateRoot, storageID uuid.UUID, name, reason string) *StorageNameSet {
+func NewStorageNameSet(aggregate SchoolAggregateRoot, storageID string, name, reason string) *StorageNameSet {
 	return &StorageNameSet{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
@@ -60,12 +59,12 @@ func NewStorageNameSet(aggregate SchoolAggregateRoot, storageID uuid.UUID, name,
 
 type StorageLocationSet struct {
 	common.EventModel
-	StorageID uuid.UUID
+	StorageID string
 	Location  string
 	Reason    string
 }
 
-func NewStorageLocationSet(aggregate SchoolAggregateRoot, storageID uuid.UUID, location, reason string) *StorageLocationSet {
+func NewStorageLocationSet(aggregate SchoolAggregateRoot, storageID string, location, reason string) *StorageLocationSet {
 	return &StorageLocationSet{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),

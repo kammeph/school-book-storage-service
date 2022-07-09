@@ -1,18 +1,16 @@
 package common
 
-import "github.com/google/uuid"
-
 type AggregateModel struct {
-	ID      uuid.UUID
+	ID      string
 	Version int
 	Events  []Event
 }
 
-func (a AggregateModel) AggregateID() uuid.UUID {
+func (a AggregateModel) AggregateID() string {
 	return a.ID
 }
 
-func (a *AggregateModel) SetAggregateID(id uuid.UUID) {
+func (a *AggregateModel) SetAggregateID(id string) {
 	a.ID = id
 }
 
@@ -25,8 +23,8 @@ func (a AggregateModel) DomainEvents() []Event {
 }
 
 type Aggregate interface {
-	AggregateID() uuid.UUID
-	SetAggregateID(uuid.UUID)
+	AggregateID() string
+	SetAggregateID(string)
 	AggregateVersion() int
 	DomainEvents() []Event
 	On(event Event) error

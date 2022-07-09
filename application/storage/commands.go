@@ -3,15 +3,30 @@ package storage
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/application/common"
 	"github.com/kammeph/school-book-storage-service/domain/storage"
 )
 
+type StorageCommandHandlers struct {
+	AddStorageHandler         AddStorageCommandHandler
+	RemoveStorageHandler      RemoveStorageCommandHandler
+	SetStorageNameHandler     SetStorageNameCommandHandler
+	SetStorageLocationHandler SetStorageLocationCommandHandler
+}
+
+func NewStorageCommandHandlers(repository *common.Repository) StorageCommandHandlers {
+	return StorageCommandHandlers{
+		AddStorageHandler:         NewAddStorageCommandHandler(repository),
+		RemoveStorageHandler:      NewRemoveStorageCommandHandler(repository),
+		SetStorageNameHandler:     NewSetStorageNameCommandHandler(repository),
+		SetStorageLocationHandler: NewSetStorageLocationCommandHandler(repository),
+	}
+}
+
 type AddStorage struct {
 	common.CommandModel
-	Name     string
-	Location string
+	Name     string `json:"name"`
+	Location string `json:"location"`
 }
 
 type AddStorageCommandHandler struct {
@@ -22,27 +37,27 @@ func NewAddStorageCommandHandler(repository *common.Repository) AddStorageComman
 	return AddStorageCommandHandler{repository: repository}
 }
 
-func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorage) (uuid.UUID, error) {
+func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorage) (StorageIDDto, error) {
 	aggregate, err := h.repository.Load(ctx, command.AggregateID())
 	if err != nil {
-		return uuid.UUID{}, err
+		return StorageIDDto{}, err
 	}
 	school, ok := aggregate.(*storage.SchoolAggregateRoot)
 	if !ok {
-		return uuid.UUID{}, IncorrectAggregateTypeError(aggregate)
+		return StorageIDDto{}, IncorrectAggregateTypeError(aggregate)
 	}
 	storageID, err := school.AddStorage(command.Name, command.Location)
 	if err != nil {
-		return uuid.UUID{}, err
+		return StorageIDDto{}, err
 	}
 	err = h.repository.Save(ctx, aggregate)
-	return storageID, err
+	return StorageIDDto{StorageID: storageID}, err
 }
 
 type RemoveStorage struct {
 	common.CommandModel
-	StorageID uuid.UUID
-	Reason    string
+	StorageID string `json:"storageId"`
+	Reason    string `json:"reason"`
 }
 
 type RemoveStorageCommandHandler struct {
@@ -71,9 +86,9 @@ func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveS
 
 type SetStorageName struct {
 	common.CommandModel
-	StorageID uuid.UUID
-	Name      string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Name      string `json:"name"`
+	Reason    string `json:"reason"`
 }
 
 type SetStorageNameCommandHandler struct {
@@ -102,9 +117,9 @@ func (h SetStorageNameCommandHandler) Handle(ctx context.Context, command SetSto
 
 type SetStorageLocation struct {
 	common.CommandModel
-	StorageID uuid.UUID
-	Location  string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Location  string `json:"location"`
+	Reason    string `json:"reason"`
 }
 
 type SetStorageLocationCommandHandler struct {

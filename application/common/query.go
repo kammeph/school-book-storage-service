@@ -1,15 +1,13 @@
 package common
 
-import "github.com/google/uuid"
-
 type QueryModel struct {
-	ID uuid.UUID
+	ID string
 }
 
 type Query interface {
-	AggregateID() uuid.UUID
+	AggregateID() string
 }
 
-func (q QueryModel) AggregateID() uuid.UUID {
+func (q QueryModel) AggregateID() string {
 	return q.ID
 }

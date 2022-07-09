@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func prepareAggregate() (uuid.UUID, uuid.UUID, error) {
+func prepareAggregate() (string, string, error) {
 	handler := storage.NewAddStorageCommandHandler(repository)
-	commandId := uuid.New()
+	commandId := uuid.New().String()
 	ctx := context.Background()
 	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	storageID, err := handler.Handle(ctx, add)
-	return commandId, storageID, err
+	dto, err := handler.Handle(ctx, add)
+	return commandId, dto.StorageID, err
 }
 
 func TestGetAllStorages(t *testing.T) {
@@ -45,7 +45,7 @@ func TestGetStoragesByID(t *testing.T) {
 
 func TestGetStorageIDNotFound(t *testing.T) {
 	queryID, _, err := prepareAggregate()
-	storageID := uuid.New()
+	storageID := uuid.New().String()
 	assert.Nil(t, err)
 	getStorageByID := storage.GetStorageByID{QueryModel: common.QueryModel{ID: queryID}, StorageID: storageID}
 	handler := storage.NewGetStorageByIDQueryHandler(repository)

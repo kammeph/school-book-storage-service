@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/application/common"
 )
 
@@ -31,7 +30,7 @@ func (s *PostgresStore) expand(stmt string) string {
 	return strings.Replace(stmt, "${TABLE}", s.tableName, -1)
 }
 
-func (s *PostgresStore) maxVersion(ctx context.Context, aggregateID uuid.UUID) (int, error) {
+func (s *PostgresStore) maxVersion(ctx context.Context, aggregateID string) (int, error) {
 	stmt, err := s.db.PrepareContext(ctx, s.expand(maxVersionSql))
 	defer stmt.Close()
 	if err != nil {
@@ -53,11 +52,11 @@ func (s *PostgresStore) maxVersion(ctx context.Context, aggregateID uuid.UUID) (
 	return maxVersion, nil
 }
 
-func (s *PostgresStore) Load(ctx context.Context, aggregateID uuid.UUID) ([]common.Record, error) {
+func (s *PostgresStore) Load(ctx context.Context, aggregateID string) ([]common.Record, error) {
 	return s.LoadVersions(ctx, aggregateID, 0, 0)
 }
 
-func (s *PostgresStore) LoadVersions(ctx context.Context, aggregateID uuid.UUID, fromVersion int, toVersion int) ([]common.Record, error) {
+func (s *PostgresStore) LoadVersions(ctx context.Context, aggregateID string, fromVersion int, toVersion int) ([]common.Record, error) {
 	stmt, err := s.db.PrepareContext(ctx, s.expand(selectSql))
 	defer stmt.Close()
 	if err != nil {
@@ -85,7 +84,7 @@ func (s *PostgresStore) LoadVersions(ctx context.Context, aggregateID uuid.UUID,
 	return records, nil
 }
 
-func (s *PostgresStore) Save(ctx context.Context, aggregateID uuid.UUID, records ...common.Record) error {
+func (s *PostgresStore) Save(ctx context.Context, aggregateID string, records ...common.Record) error {
 	if len(records) == 0 {
 		return nil
 	}

@@ -18,10 +18,14 @@ type jsonEvent struct {
 	Data json.RawMessage `json:"d"`
 }
 
-func NewJSONSerializer(events ...domain.Event) *JSONSerializer {
-	serializer := &JSONSerializer{
+func NewJSONSerializer() *JSONSerializer {
+	return &JSONSerializer{
 		eventTypes: map[string]reflect.Type{},
 	}
+}
+
+func NewJSONSerializerWithEvents(events ...domain.Event) *JSONSerializer {
+	serializer := NewJSONSerializer()
 	serializer.Bind(events...)
 	return serializer
 }

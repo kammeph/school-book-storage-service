@@ -19,7 +19,7 @@ type EntityAggregate struct {
 }
 
 type Entity struct {
-	ID        uuid.UUID
+	ID        string
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -27,7 +27,7 @@ type Entity struct {
 
 type EntityCreated struct {
 	domain.EventModel
-	EntityID uuid.UUID
+	EntityID string
 }
 
 type EntityNameSet struct {
@@ -66,19 +66,19 @@ type memoryStore struct {
 	eventsById map[string][]common.Record
 }
 
-func (s *memoryStore) Save(ctx context.Context, aggregateID uuid.UUID, records ...common.Record) error {
-	if _, ok := s.eventsById[aggregateID.String()]; !ok {
-		s.eventsById[aggregateID.String()] = []common.Record{}
+func (s *memoryStore) Save(ctx context.Context, aggregateID string, records ...common.Record) error {
+	if _, ok := s.eventsById[aggregateID]; !ok {
+		s.eventsById[aggregateID] = []common.Record{}
 	}
-	history := append(s.eventsById[aggregateID.String()], records...)
-	s.eventsById[aggregateID.String()] = history
+	history := append(s.eventsById[aggregateID], records...)
+	s.eventsById[aggregateID] = history
 	return nil
 }
 
-func (s *memoryStore) Load(ctx context.Context, aggregateID uuid.UUID) ([]common.Record, error) {
-	_, ok := s.eventsById[aggregateID.String()]
+func (s *memoryStore) Load(ctx context.Context, aggregateID string) ([]common.Record, error) {
+	_, ok := s.eventsById[aggregateID]
 	if ok {
-		return s.eventsById[aggregateID.String()], nil
+		return s.eventsById[aggregateID], nil
 	}
 	return nil, nil
 }
@@ -87,17 +87,17 @@ func TestNew(t *testing.T) {
 	repository := common.NewRepository(
 		&EntityAggregate{},
 		&memoryStore{eventsById: map[string][]common.Record{}},
-		serializers.NewJSONSerializer())
+		serializers.NewJSONSerializerWithEvents())
 	assert.NotNil(t, repository)
 }
 
 func TestLoad(t *testing.T) {
 	ctx := context.Background()
-	aggregateID := uuid.New()
+	aggregateID := uuid.New().String()
 	repository := common.NewRepository(
 		&EntityAggregate{},
 		&memoryStore{eventsById: map[string][]common.Record{}},
-		serializers.NewJSONSerializer(
+		serializers.NewJSONSerializerWithEvents(
 			EntityCreated{},
 			EntityNameSet{}))
 	aggregate, err := repository.Load(ctx, aggregateID)
@@ -110,11 +110,11 @@ func TestLoad(t *testing.T) {
 
 func TestSave(t *testing.T) {
 	ctx := context.Background()
-	aggregateID := uuid.New()
+	aggregateID := uuid.New().String()
 	repository := common.NewRepository(
 		&EntityAggregate{},
 		&memoryStore{eventsById: map[string][]common.Record{}},
-		serializers.NewJSONSerializer(
+		serializers.NewJSONSerializerWithEvents(
 			EntityCreated{},
 			EntityNameSet{}))
 	aggregate, err := repository.Load(ctx, aggregateID)
@@ -122,7 +122,7 @@ func TestSave(t *testing.T) {
 	assert.NotNil(t, aggregate)
 	a, ok := aggregate.(*EntityAggregate)
 	assert.True(t, ok)
-	entityID := uuid.New()
+	entityID := uuid.New().String()
 	createdEvent := EntityCreated{EventModel: domain.EventModel{ID: aggregateID, Version: 1, At: time.Now()}, EntityID: entityID}
 	a.Events = append(a.Events, createdEvent)
 	nameSetEvent := EntityNameSet{EventModel: domain.EventModel{ID: aggregateID, Version: 2, At: time.Now()}, Name: "entity"}
