@@ -24,7 +24,7 @@ var (
 	password = utils.GetenvOrFallback(dbPassword, "rootpwd")
 	host     = utils.GetenvOrFallback(dbHost, "localhost")
 	port     = utils.GetenvOrFallback(dbPort, "5432")
-	dbname   = utils.GetenvOrFallback(dbName, "task_tracker")
+	dbname   = utils.GetenvOrFallback(dbName, "school_book_storage")
 	sslmode  = utils.GetenvOrFallback(dbSslmode, "disable")
 )
 
