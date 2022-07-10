@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	insertSql     = "INSERT INTO test \\(aggregate_id, data, version\\) VALUES \\(\\$1, \\$2, \\$3\\)"
+	insertSql     = "INSERT INTO test \\(id, aggregate_id, data, version\\) VALUES \\(gen_random_uuid\\(\\),\\$1, \\$2, \\$3\\)"
 	selectSql     = "SELECT data, version FROM test WHERE aggregate_id = \\$1 AND version >= \\$2 AND version <= \\$3 ORDER BY version ASC"
 	maxVersionSql = "SELECT MAX\\(version\\) FROM test WHERE aggregate_id = \\$1"
 )
@@ -51,7 +51,7 @@ func TestPostgresStoreSave(t *testing.T) {
 
 	data, err := json.Marshal("Record1")
 	assert.Nil(t, err)
-	record := common.Record{Version: 1, Data: data}
+	record := common.Record{Version: 1, Data: string(data)}
 	store := stores.NewPostgressStore("test", db)
 	aggregateID := uuid.New().String()
 
@@ -71,7 +71,7 @@ func TestPostgresStoreSaveWithMaxVersion(t *testing.T) {
 
 	data, err := json.Marshal("Record1")
 	assert.Nil(t, err)
-	record := common.Record{Version: 4, Data: data}
+	record := common.Record{Version: 4, Data: string(data)}
 	store := stores.NewPostgressStore("test", db)
 	aggregateID := uuid.New().String()
 
@@ -91,7 +91,7 @@ func TestProstgresSaveWithWrongVersion(t *testing.T) {
 
 	data, err := json.Marshal("Record")
 	assert.Nil(t, err)
-	record := common.Record{Version: 1, Data: data}
+	record := common.Record{Version: 1, Data: string(data)}
 	store := stores.NewPostgressStore("test", db)
 	aggregateID := uuid.New().String()
 
