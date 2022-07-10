@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	insertSql     = "INSERT INTO ${TABLE} (aggregate_id, data, version) VALUES ($1, $2, $3)"
+	insertSql     = "INSERT INTO ${TABLE} (id, aggregate_id, data, version) VALUES (gen_random_uuid(),$1, $2, $3)"
 	selectSql     = "SELECT data, version FROM ${TABLE} WHERE aggregate_id = $1 AND version >= $2 AND version <= $3 ORDER BY version ASC"
 	maxVersionSql = "SELECT MAX(version) FROM ${TABLE} WHERE aggregate_id = $1"
 )

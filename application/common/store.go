@@ -6,7 +6,7 @@ import (
 
 type Record struct {
 	Version int
-	Data    []byte
+	Data    string
 }
 
 // History represents
