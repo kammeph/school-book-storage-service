@@ -14,8 +14,8 @@ type JSONSerializer struct {
 }
 
 type jsonEvent struct {
-	Type string          `json:"t"`
-	Data json.RawMessage `json:"d"`
+	Type string `json:"t"`
+	Data string `json:"d"`
 }
 
 func NewJSONSerializer() *JSONSerializer {
@@ -43,16 +43,16 @@ func (s *JSONSerializer) MarshalEvent(event domain.Event) (common.Record, error)
 	if err != nil {
 		return common.Record{}, err
 	}
-	data, err = json.Marshal(jsonEvent{Type: eventType, Data: data})
+	data, err = json.Marshal(jsonEvent{Type: eventType, Data: string(data)})
 	if err != nil {
 		return common.Record{}, nil
 	}
-	return common.Record{Version: event.EventVersion(), Data: data}, nil
+	return common.Record{Version: event.EventVersion(), Data: string(data)}, nil
 }
 
 func (s *JSONSerializer) UnmarshalEvent(record common.Record) (domain.Event, error) {
 	jEvent := jsonEvent{}
-	err := json.Unmarshal(record.Data, &jEvent)
+	err := json.Unmarshal([]byte(record.Data), &jEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *JSONSerializer) UnmarshalEvent(record common.Record) (domain.Event, err
 	}
 
 	event := reflect.New(t).Interface()
-	err = json.Unmarshal(jEvent.Data, event)
+	err = json.Unmarshal([]byte(jEvent.Data), event)
 	if err != nil {
 		return nil, err
 	}
