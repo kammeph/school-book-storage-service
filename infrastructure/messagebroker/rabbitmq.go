@@ -25,36 +25,49 @@ var (
 	port     = utils.GetenvOrFallback(rabbitPort, "5672")
 )
 
-type AmqpConnection struct {
+type AmqpConnection interface {
+	Channel() (AmqpChannel, error)
+	Close() error
+}
+
+type AmqpConnectionWrapper struct {
 	connection *amqp.Connection
 }
 
-func (c AmqpConnection) Close() error {
+func (c AmqpConnectionWrapper) Close() error {
 	return c.connection.Close()
 }
 
-func (c AmqpConnection) Channel() (application.AmqpChannel, error) {
+func (c AmqpConnectionWrapper) Channel() (AmqpChannel, error) {
 	return c.connection.Channel()
 }
 
-func NewRabbitMQConnection() (application.AmqpConnection, error) {
+type AmqpChannel interface {
+	Close() error
+	ExchangeDeclare(name, kind string, durable, autoDelete, internal, noWait bool, args amqp.Table) error
+	QueueDeclare(name string, durable, autoDelete, exclusiv, noWait bool, args amqp.Table) (amqp.Queue, error)
+	QueueBind(name, key, exchange string, noWait bool, args amqp.Table) error
+	Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error)
+	Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error
+}
+
+func NewRabbitMQConnection() (AmqpConnection, error) {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%s/", user, password, host, port)
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		return nil, err
+		return AmqpConnectionWrapper{}, err
 	}
-	return AmqpConnection{conn}, nil
+	return AmqpConnectionWrapper{conn}, nil
 }
 
 type RabbitMQ struct {
-	channel        application.AmqpChannel
+	channel        AmqpChannel
 	exchange       string
 	handlerByEvent map[string][]application.EventHandler
 }
 
-func NewRabbitMQ(connection application.AmqpConnection, exchange string) (*RabbitMQ, error) {
+func NewRabbitMQ(connection AmqpConnection, exchange string) (*RabbitMQ, error) {
 	channel, err := connection.Channel()
-	defer channel.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +121,9 @@ func (broker *RabbitMQ) Publish(event domain.Event) error {
 	return broker.channel.Publish(broker.exchange, eventType, false, false, msg)
 }
 
-func (broker *RabbitMQ) Subscribe(event domain.Event, handler application.EventHandler) error {
+func (broker *RabbitMQ) Subscribe(event domain.Event, handler application.EventHandler) {
 	eventName, _ := domain.EventType(event)
 	handlers, _ := broker.handlerByEvent[eventName]
 	handlers = append(handlers, handler)
 	broker.handlerByEvent[eventName] = handlers
-	return nil
 }

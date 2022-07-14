@@ -18,7 +18,7 @@ func ConfigureEndpointsWithMemoryStore() {
 	configureEndpoints(repository)
 }
 
-func ConfigureEndpointWithPostgresStore(db *sql.DB, connection common.AmqpConnection) {
+func ConfigureEndpointWithPostgresStore(db *sql.DB, connection messagebroker.AmqpConnection) {
 	store := stores.NewPostgressStore("storages", db)
 	serializer := serializers.NewJSONSerializer()
 	broker, err := messagebroker.NewRabbitMQ(connection, "storage")

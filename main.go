@@ -10,6 +10,7 @@ import (
 
 func main() {
 	connection, err := messagebroker.NewRabbitMQConnection()
+	defer connection.Close()
 	if err != nil {
 		panic(err)
 	}
