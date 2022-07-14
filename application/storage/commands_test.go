@@ -51,12 +51,14 @@ var repository = common.NewRepository(
 		domain.StorageNameSet{},
 		domain.StorageLocationSet{},
 	),
+	nil,
 )
 
 var entityRepository = common.NewRepository(
 	&EntityAggregate{},
 	&memoryStore{eventsById: map[string][]common.Record{}},
 	serializers.NewJSONSerializerWithEvents(),
+	nil,
 )
 
 func TestHandleAddStorage(t *testing.T) {

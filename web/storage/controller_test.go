@@ -19,7 +19,7 @@ import (
 func getStorageController() (storage.StorageController, string, error) {
 	store := stores.NewMemoryStore()
 	serializer := serializers.NewJSONSerializer()
-	repository := application.NewStorageRepository(store, serializer)
+	repository := application.NewStorageRepository(store, serializer, nil)
 	aggregate, err := repository.Load(context.Background(), "test")
 	if err != nil {
 		return storage.StorageController{}, "", err
