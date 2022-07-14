@@ -6,6 +6,7 @@ import (
 
 	"github.com/kammeph/school-book-storage-service/application/common"
 	"github.com/kammeph/school-book-storage-service/application/storage"
+	"github.com/kammeph/school-book-storage-service/infrastructure/messagebroker"
 	"github.com/kammeph/school-book-storage-service/infrastructure/serializers"
 	"github.com/kammeph/school-book-storage-service/infrastructure/stores"
 )
@@ -13,14 +14,18 @@ import (
 func ConfigureEndpointsWithMemoryStore() {
 	store := stores.NewMemoryStore()
 	serializer := serializers.NewJSONSerializer()
-	repository := storage.NewStorageRepository(store, serializer)
+	repository := storage.NewStorageRepository(store, serializer, nil)
 	configureEndpoints(repository)
 }
 
-func ConfigureEndpointWithPostgresStore(db *sql.DB) {
+func ConfigureEndpointWithPostgresStore(db *sql.DB, connection messagebroker.AmqpConnection) {
 	store := stores.NewPostgressStore("storages", db)
 	serializer := serializers.NewJSONSerializer()
-	repository := storage.NewStorageRepository(store, serializer)
+	broker, err := messagebroker.NewRabbitMQ(connection, "storage")
+	if err != nil {
+		panic(err)
+	}
+	repository := storage.NewStorageRepository(store, serializer, broker)
 	configureEndpoints(repository)
 }
 

@@ -11,15 +11,15 @@ type Repository struct {
 	prototype  reflect.Type
 	store      Store
 	serializer Serializer
-	observers  []func(common.Event)
+	broker     MessageBroker
 }
 
-func NewRepository(prototype common.Aggregate, store Store, serializer Serializer) *Repository {
+func NewRepository(prototype common.Aggregate, store Store, serializer Serializer, broker MessageBroker) *Repository {
 	t := reflect.TypeOf(prototype)
 	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
-	return &Repository{prototype: t, store: store, serializer: serializer}
+	return &Repository{prototype: t, store: store, serializer: serializer, broker: broker}
 }
 
 func (r *Repository) NewAggregate(id string) common.Aggregate {
@@ -53,19 +53,19 @@ func (r *Repository) Load(ctx context.Context, aggregateID string) (common.Aggre
 }
 
 func (r *Repository) Save(ctx context.Context, aggregate common.Aggregate) error {
-	var records []Record
 	for _, event := range aggregate.DomainEvents() {
 		record, err := r.serializer.MarshalEvent(event)
 		if err != nil {
-			return nil
+			return err
 		}
-		records = append(records, record)
 
-		// must work asynchronous
-		for _, observer := range r.observers {
-			observer(event)
+		if err = r.store.Save(ctx, aggregate.AggregateID(), record); err != nil {
+			return err
+		}
+
+		if r.broker != nil {
+			r.broker.Publish(event)
 		}
 	}
-
-	return r.store.Save(ctx, aggregate.AggregateID(), records...)
+	return nil
 }
