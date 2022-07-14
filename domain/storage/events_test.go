@@ -9,12 +9,15 @@ import (
 
 func TestNewStorageCreated(t *testing.T) {
 	storgeID, aggregate := newTestAggregate()
-	storageCreated := storage.NewStorageCreated(aggregate, storgeID)
+	name, location := "storage", "location"
+	storageCreated := storage.NewStorageAdded(aggregate, storgeID, name, location)
 	assert.NotNil(t, storageCreated)
 	assert.Equal(t, storageCreated.AggregateID(), aggregate.AggregateID())
 	assert.Equal(t, storageCreated.Version, aggregate.AggregateVersion()+1)
 	assert.NotZero(t, storageCreated.EventAt())
 	assert.Equal(t, storageCreated.StorageID, storgeID)
+	assert.Equal(t, storageCreated.Name, name)
+	assert.Equal(t, storageCreated.Location, location)
 }
 
 func TestNewStorageRemoved(t *testing.T) {
@@ -30,7 +33,7 @@ func TestNewStorageRemoved(t *testing.T) {
 
 func TestNewStorageNameSet(t *testing.T) {
 	storgeID, aggregate := newTestAggregate()
-	storageNameSet := storage.NewStorageNameSet(aggregate, storgeID, "storage", "test")
+	storageNameSet := storage.NewStorageRenamed(aggregate, storgeID, "storage", "test")
 	assert.NotNil(t, storageNameSet)
 	assert.Equal(t, storageNameSet.AggregateID(), aggregate.AggregateID())
 	assert.Equal(t, storageNameSet.Version, aggregate.AggregateVersion()+1)
@@ -42,7 +45,7 @@ func TestNewStorageNameSet(t *testing.T) {
 
 func TestNewStorageLocationSet(t *testing.T) {
 	storgeID, aggregate := newTestAggregate()
-	storageLocationSet := storage.NewStorageLocationSet(aggregate, storgeID, "location", "test")
+	storageLocationSet := storage.NewStorageRelocated(aggregate, storgeID, "location", "test")
 	assert.NotNil(t, storageLocationSet)
 	assert.Equal(t, storageLocationSet.AggregateID(), aggregate.AggregateID())
 	assert.Equal(t, storageLocationSet.Version, aggregate.AggregateVersion()+1)

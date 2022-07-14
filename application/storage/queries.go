@@ -42,14 +42,14 @@ func (h GetAllStoragesQueryHandler) Handle(ctx context.Context, query GetAllStor
 	if err != nil {
 		return nil, err
 	}
-	schoolAggregate, ok := aggregate.(*domain.SchoolAggregateRoot)
+	schoolAggregate, ok := aggregate.(*domain.StorageAggregateRoot)
 	if !ok {
 		return nil, IncorrectAggregateTypeError(aggregate)
 	}
-	if schoolAggregate.School.Storages == nil {
-		schoolAggregate.School.Storages = []domain.Storage{}
+	if schoolAggregate.Storages == nil {
+		schoolAggregate.Storages = []domain.Storage{}
 	}
-	return schoolAggregate.School.Storages, nil
+	return schoolAggregate.Storages, nil
 }
 
 type GetStorageByID struct {
@@ -74,7 +74,7 @@ func (h GetStorageByIDQueryHandler) Handle(ctx context.Context, query GetStorage
 	if err != nil {
 		return domain.Storage{}, err
 	}
-	schoolAggregate, ok := aggregate.(*domain.SchoolAggregateRoot)
+	schoolAggregate, ok := aggregate.(*domain.StorageAggregateRoot)
 	if !ok {
 		return domain.Storage{}, IncorrectAggregateTypeError(aggregate)
 	}
@@ -107,7 +107,7 @@ func (h GetStorageByNameQueryHandler) Handle(ctx context.Context, query GetStora
 	if err != nil {
 		return domain.Storage{}, err
 	}
-	schoolAggregate, ok := aggregate.(*domain.SchoolAggregateRoot)
+	schoolAggregate, ok := aggregate.(*domain.StorageAggregateRoot)
 	if !ok {
 		return domain.Storage{}, IncorrectAggregateTypeError(aggregate)
 	}
