@@ -9,7 +9,6 @@ import (
 	"github.com/kammeph/school-book-storage-service/infrastructure/messagebroker"
 	"github.com/kammeph/school-book-storage-service/infrastructure/serializers"
 	"github.com/kammeph/school-book-storage-service/infrastructure/stores"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func ConfigureEndpointsWithMemoryStore() {
@@ -19,7 +18,7 @@ func ConfigureEndpointsWithMemoryStore() {
 	configureEndpoints(repository)
 }
 
-func ConfigureEndpointWithPostgresStore(db *sql.DB, connection *amqp.Connection) {
+func ConfigureEndpointWithPostgresStore(db *sql.DB, connection common.AmqpConnection) {
 	store := stores.NewPostgressStore("storages", db)
 	serializer := serializers.NewJSONSerializer()
 	broker, err := messagebroker.NewRabbitMQ(connection, "storage")

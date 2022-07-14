@@ -25,19 +25,36 @@ var (
 	port     = utils.GetenvOrFallback(rabbitPort, "5672")
 )
 
-func NewRabbitMQConnection() (*amqp.Connection, error) {
+type AmqpConnection struct {
+	connection *amqp.Connection
+}
+
+func (c AmqpConnection) Close() error {
+	return c.connection.Close()
+}
+
+func (c AmqpConnection) Channel() (application.AmqpChannel, error) {
+	return c.connection.Channel()
+}
+
+func NewRabbitMQConnection() (application.AmqpConnection, error) {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%s/", user, password, host, port)
-	return amqp.Dial(url)
+	conn, err := amqp.Dial(url)
+	if err != nil {
+		return nil, err
+	}
+	return AmqpConnection{conn}, nil
 }
 
 type RabbitMQ struct {
-	channel        *amqp.Channel
+	channel        application.AmqpChannel
 	exchange       string
 	handlerByEvent map[string][]application.EventHandler
 }
 
-func NewRabbitMQ(connection *amqp.Connection, exchange string) (*RabbitMQ, error) {
+func NewRabbitMQ(connection application.AmqpConnection, exchange string) (*RabbitMQ, error) {
 	channel, err := connection.Channel()
+	defer channel.Close()
 	if err != nil {
 		return nil, err
 	}
