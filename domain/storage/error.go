@@ -13,6 +13,10 @@ var (
 	ReasonNotSpecifiedError    = errors.New("No reason specified")
 )
 
+func StoragesWithIdAlreadyExistsError(id string) error {
+	return fmt.Errorf("Storage with ID %s already exists", id)
+}
+
 func StorageAlreadyExistsError(name, location string) error {
 	return fmt.Errorf("Storage with name %s in location %s already exists", name, location)
 }

@@ -113,6 +113,10 @@ func (s *StorageAggregateRoot) On(event common.Event) error {
 }
 
 func (a *StorageAggregateRoot) onStorageAdded(event *StorageAdded) error {
+	_, idx, _ := a.GetStorageByID(event.StorageID)
+	if idx > -1 {
+		return StoragesWithIdAlreadyExistsError(event.StorageID)
+	}
 	storage := NewStorage(event.StorageID, event.Name, event.Location, event.EventAt())
 	a.Version = event.EventVersion()
 	a.Storages = append(a.Storages, storage)
