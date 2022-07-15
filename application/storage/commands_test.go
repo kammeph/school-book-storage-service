@@ -43,13 +43,13 @@ func (s *memoryStore) Load(ctx context.Context, aggregateID string) ([]common.Re
 }
 
 var repository = common.NewRepository(
-	&domain.SchoolAggregateRoot{},
+	&domain.StorageAggregateRoot{},
 	&memoryStore{eventsById: map[string][]common.Record{}},
 	serializers.NewJSONSerializerWithEvents(
-		domain.StorageCreated{},
+		domain.StorageAdded{},
 		domain.StorageRemoved{},
-		domain.StorageNameSet{},
-		domain.StorageLocationSet{},
+		domain.StorageRenamed{},
+		domain.StorageRelocated{},
 	),
 	nil,
 )

@@ -24,7 +24,7 @@ func getStorageController() (storage.StorageController, string, error) {
 	if err != nil {
 		return storage.StorageController{}, "", err
 	}
-	schoolAggregate, _ := aggregate.(*domain.SchoolAggregateRoot)
+	schoolAggregate, _ := aggregate.(*domain.StorageAggregateRoot)
 	storageID, err := schoolAggregate.AddStorage("storage", "location")
 	if err != nil {
 		return storage.StorageController{}, "", err
@@ -60,7 +60,7 @@ func TestRemoveStorage(t *testing.T) {
 func TestSetStorageName(t *testing.T) {
 	controller, storageID, err := getStorageController()
 	body := fmt.Sprintf(`{"aggregateId":"test","storageId":"%s","name":"storage set name","reason":"test"}`, storageID)
-	req, err := http.NewRequest("POST", "api/storages/set-name", strings.NewReader(body))
+	req, err := http.NewRequest("POST", "api/storages/rename", strings.NewReader(body))
 	assert.Nil(t, err)
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(controller.SetStorageName)
@@ -71,7 +71,7 @@ func TestSetStorageName(t *testing.T) {
 func TestSetStorageLocation(t *testing.T) {
 	controller, storageID, err := getStorageController()
 	body := fmt.Sprintf(`{"aggregateId":"test","storageId":"%s","location":"location set","reason":"test"}`, storageID)
-	req, err := http.NewRequest("POST", "api/storages/set-location", strings.NewReader(body))
+	req, err := http.NewRequest("POST", "api/storages/relocate", strings.NewReader(body))
 	assert.Nil(t, err)
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(controller.SetStorageLocation)

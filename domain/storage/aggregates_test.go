@@ -14,12 +14,11 @@ type UnknownEvent struct {
 	common.EventModel
 }
 
-func newTestAggregate() (string, storage.SchoolAggregateRoot) {
-	schoolID := uuid.New().String()
+func newTestAggregate() (string, storage.StorageAggregateRoot) {
 	storageID := uuid.New().String()
-	aggregate := storage.NewSchoolAggregateRootWithID(schoolID)
-	aggregate.School.Storages = append(
-		aggregate.School.Storages,
+	aggregate := storage.NewStorageAggregateRoot()
+	aggregate.Storages = append(
+		aggregate.Storages,
 		storage.Storage{
 			ID:       storageID,
 			Name:     "storage",
@@ -28,222 +27,506 @@ func newTestAggregate() (string, storage.SchoolAggregateRoot) {
 	return storageID, aggregate
 }
 
+func newTestAggregateWithStorages(storages []storage.Storage) storage.StorageAggregateRoot {
+	aggregate := storage.NewStorageAggregateRoot()
+	aggregate.Storages = storages
+	return aggregate
+}
+
 func TestAddStorage(t *testing.T) {
-	aggregate := storage.NewSchoolAggregateRoot()
-	storageID, err := aggregate.AddStorage("storage", "location")
-	createdEvents := aggregate.DomainEvents()
-	assert.Nil(t, err)
-	assert.Len(t, createdEvents, 3)
-	assert.NotZero(t, storageID)
-	created, createdOk := createdEvents[0].(*storage.StorageCreated)
-	assert.True(t, createdOk)
-	assert.Equal(t, created.Version, 1)
-	nameSet, nameSetOk := createdEvents[1].(*storage.StorageNameSet)
-	assert.True(t, nameSetOk)
-	assert.Equal(t, nameSet.Version, 2)
-	assert.Equal(t, nameSet.Name, "storage")
-	locationSet, locationOk := createdEvents[2].(*storage.StorageLocationSet)
-	assert.True(t, locationOk)
-	assert.Equal(t, locationSet.Version, 3)
-	assert.Equal(t, locationSet.Location, "location")
-	assert.Len(t, aggregate.School.Storages, 1)
-}
-
-func TestAddStoragForExistingName(t *testing.T) {
-	_, aggregate := newTestAggregate()
-	storageID, err := aggregate.AddStorage("storage", "location")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.StorageAlreadyExistsError("storage", "location"))
-	assert.Zero(t, storageID)
-}
-
-func TestAddStorageWithoutName(t *testing.T) {
-	aggregate := storage.NewSchoolAggregateRoot()
-	storageID, err := aggregate.AddStorage("", "location")
-	assert.NotNil(t, err)
-	assert.Zero(t, storageID)
-	assert.Equal(t, err, storage.StorageNameNotSetError)
-}
-
-func TestAddStorageWithoutLocation(t *testing.T) {
-	aggregate := storage.NewSchoolAggregateRoot()
-	storageID, err := aggregate.AddStorage("storage", "")
-	assert.NotNil(t, err)
-	assert.Zero(t, storageID)
-	assert.Equal(t, err, storage.StorageLocationNotSetError)
+	tests := []struct {
+		name            string
+		storages        []storage.Storage
+		storageName     string
+		storageLocation string
+		err             error
+		expectError     bool
+	}{
+		{
+			name:            "add storage",
+			storages:        []storage.Storage{},
+			storageName:     "storage",
+			storageLocation: "location",
+			err:             nil,
+			expectError:     false,
+		},
+		{
+			name:            "add storage without name",
+			storages:        []storage.Storage{},
+			storageName:     "",
+			storageLocation: "location",
+			err:             storage.StorageNameNotSetError,
+			expectError:     true,
+		},
+		{
+			name:            "add storage without location",
+			storages:        []storage.Storage{},
+			storageName:     "storage",
+			storageLocation: "",
+			err:             storage.StorageLocationNotSetError,
+			expectError:     true,
+		},
+		{
+			name: "storage already exists",
+			storages: []storage.Storage{{
+				ID:       uuid.NewString(),
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageName:     "storage",
+			storageLocation: "location",
+			err:             storage.StorageAlreadyExistsError("storage", "location"),
+			expectError:     true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			aggregate := newTestAggregateWithStorages(test.storages)
+			storageID, err := aggregate.AddStorage(test.storageName, test.storageLocation)
+			if test.expectError {
+				assert.Error(t, err)
+				assert.Equal(t, test.err, err)
+				return
+			}
+			assert.Len(t, aggregate.DomainEvents(), 1)
+			event := aggregate.DomainEvents()[0]
+			v, ok := event.(*storage.StorageAdded)
+			assert.True(t, ok)
+			assert.Equal(t, storageID, v.StorageID)
+			assert.Equal(t, test.storageName, v.Name)
+			assert.Equal(t, test.storageLocation, v.Location)
+		})
+	}
 }
 
 func TestRemoveStorage(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.RemoveStorage(storageID, "test")
-	createdEvents := aggregate.DomainEvents()
-	assert.Nil(t, err)
-	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(*storage.StorageRemoved)
-	assert.True(t, ok)
-	assert.Equal(t, v.Version, 1)
-	assert.Equal(t, v.Reason, "test")
-	assert.Len(t, aggregate.School.Storages, 0)
+	storageID := uuid.NewString()
+	tests := []struct {
+		name        string
+		storages    []storage.Storage
+		reason      string
+		err         error
+		expectError bool
+	}{
+		{
+			name: "remove storage",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			reason:      "test",
+			err:         nil,
+			expectError: false,
+		},
+		{
+			name:        "error when removing not existing storage",
+			storages:    []storage.Storage{},
+			reason:      "test",
+			err:         storage.StorageIDNotFoundError(storageID),
+			expectError: true,
+		},
+		{
+			name: "error when removing without a reason",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			reason:      "",
+			err:         storage.ReasonNotSpecifiedError,
+			expectError: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			aggregate := newTestAggregateWithStorages(test.storages)
+			err := aggregate.RemoveStorage(storageID, test.reason)
+			if test.expectError {
+				assert.Error(t, err)
+				assert.Equal(t, test.err, err)
+				return
+			}
+			assert.Len(t, aggregate.DomainEvents(), 1)
+			event := aggregate.DomainEvents()[0]
+			v, ok := event.(*storage.StorageRemoved)
+			assert.True(t, ok)
+			assert.Equal(t, v.Version, 1)
+			assert.Equal(t, v.Reason, test.reason)
+			assert.Len(t, aggregate.Storages, 0)
+		})
+	}
 }
 
-func TestRemoveStorageNotExistsError(t *testing.T) {
-	_, aggregate := newTestAggregate()
-	unknownID := uuid.New().String()
-	err := aggregate.RemoveStorage(unknownID, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.StorageIDNotFoundError(unknownID))
-}
-
-func TestRemoveStorageNoReasonError(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.RemoveStorage(storageID, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.ReasonNotSpecifiedError)
-}
-
-func TestSetStorageName(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.SetStorageName(storageID, "storage name set", "test")
-	createdEvents := aggregate.DomainEvents()
-	assert.Nil(t, err)
-	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(*storage.StorageNameSet)
-	assert.True(t, ok)
-	assert.Equal(t, v.Name, "storage name set")
-	assert.Equal(t, v.Reason, "test")
-	assert.Equal(t, aggregate.School.Storages[0].Name, "storage name set")
-}
-
-func TestSetStorageNameStorageAlreadyExistsError(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.SetStorageName(storageID, "storage", "test")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.StorageAlreadyExistsError("storage", "location"))
-}
-
-func TestSetStorageNameNotStorageExistsError(t *testing.T) {
-	_, aggregate := newTestAggregate()
-	unknownID := uuid.New().String()
-	err := aggregate.SetStorageName(unknownID, "storage name set", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.StorageIDNotFoundError(unknownID))
-}
-
-func TestSetStorageNameValueNotSetError(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.SetStorageName(storageID, "", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.StorageNameNotSetError)
-}
-
-func TestSetStorageNameReasonNotSetError(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.SetStorageLocation(storageID, "storage", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.ReasonNotSpecifiedError)
+func TestRenameStorage(t *testing.T) {
+	storageID := uuid.NewString()
+	tests := []struct {
+		name        string
+		storages    []storage.Storage
+		storageName string
+		reason      string
+		err         error
+		expectError bool
+	}{
+		{
+			name: "rename storage",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageName: "renamed",
+			reason:      "test",
+			err:         nil,
+			expectError: false,
+		},
+		{
+			name: "storage with same name and location exists",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageName: "storage",
+			reason:      "test",
+			err:         storage.StorageAlreadyExistsError("storage", "location"),
+			expectError: true,
+		},
+		{
+			name: "storage name not set",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageName: "",
+			reason:      "test",
+			err:         storage.StorageNameNotSetError,
+			expectError: true,
+		},
+		{
+			name: "reason not specified",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageName: "renamed",
+			reason:      "",
+			err:         storage.ReasonNotSpecifiedError,
+			expectError: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			aggregate := newTestAggregateWithStorages(test.storages)
+			err := aggregate.RenameStorage(storageID, test.storageName, test.reason)
+			if test.expectError {
+				assert.Error(t, err)
+				assert.Equal(t, test.err, err)
+				return
+			}
+			assert.Len(t, aggregate.DomainEvents(), 1)
+			event := aggregate.DomainEvents()[0]
+			v, ok := event.(*storage.StorageRenamed)
+			assert.True(t, ok)
+			assert.Equal(t, test.storageName, v.Name)
+			assert.Equal(t, test.reason, v.Reason)
+			assert.Equal(t, test.storageName, aggregate.Storages[0].Name)
+		})
+	}
 }
 
 func TestSetStorageLocation(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.SetStorageLocation(storageID, "location set", "test")
-	createdEvents := aggregate.DomainEvents()
-	assert.Nil(t, err)
-	assert.Len(t, createdEvents, 1)
-	v, ok := createdEvents[0].(*storage.StorageLocationSet)
-	assert.True(t, ok)
-	assert.Equal(t, v.Location, "location set")
-	assert.Equal(t, v.Reason, "test")
-	assert.Equal(t, aggregate.School.Storages[0].Location, "location set")
-}
-
-func TestSetStorageLocationStorageNotFoundError(t *testing.T) {
-	_, aggregate := newTestAggregate()
-	unknownID := uuid.New().String()
-	err := aggregate.SetStorageLocation(unknownID, "location set", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.StorageIDNotFoundError(unknownID))
-}
-
-func TestSetStorageLocationValueNotSetError(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.SetStorageLocation(storageID, "", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.StorageLocationNotSetError)
-}
-
-func TestSetStorageLocationReasonNotSetError(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	err := aggregate.SetStorageLocation(storageID, "location set", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.ReasonNotSpecifiedError)
+	storageID := uuid.NewString()
+	tests := []struct {
+		name            string
+		storages        []storage.Storage
+		storageLocation string
+		reason          string
+		err             error
+		expectError     bool
+	}{
+		{
+			name: "rename storage",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageLocation: "relocated",
+			reason:          "test",
+			err:             nil,
+			expectError:     false,
+		},
+		{
+			name: "storage with same name and location exists",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageLocation: "location",
+			reason:          "test",
+			err:             storage.StorageAlreadyExistsError("storage", "location"),
+			expectError:     true,
+		},
+		{
+			name: "storage name not set",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageLocation: "",
+			reason:          "test",
+			err:             storage.StorageLocationNotSetError,
+			expectError:     true,
+		},
+		{
+			name: "reason not specified",
+			storages: []storage.Storage{{
+				ID:       storageID,
+				Name:     "storage",
+				Location: "location",
+			}},
+			storageLocation: "relocated",
+			reason:          "",
+			err:             storage.ReasonNotSpecifiedError,
+			expectError:     true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			aggregate := newTestAggregateWithStorages(test.storages)
+			err := aggregate.RelocateStorage(storageID, test.storageLocation, test.reason)
+			if test.expectError {
+				assert.Error(t, err)
+				assert.Equal(t, test.err, err)
+				return
+			}
+			assert.Len(t, aggregate.DomainEvents(), 1)
+			event := aggregate.DomainEvents()[0]
+			v, ok := event.(*storage.StorageRelocated)
+			assert.True(t, ok)
+			assert.Equal(t, test.storageLocation, v.Location)
+			assert.Equal(t, test.reason, v.Reason)
+			assert.Equal(t, test.storageLocation, aggregate.Storages[0].Location)
+		})
+	}
 }
 
 func TestOnStorageCreated(t *testing.T) {
-	aggregate := storage.SchoolAggregateRoot{}
-	storageID := uuid.New().String()
-	storageCreated := storage.NewStorageCreated(aggregate, storageID)
-	err := aggregate.On(storageCreated)
-	assert.Nil(t, err)
-	assert.Len(t, aggregate.School.Storages, 1)
-	assert.Equal(t, aggregate.AggregateVersion(), 1)
-	assert.NotZero(t, aggregate.School.UpdatedAt)
-	storage, idx, err := aggregate.GetStorageByID(storageID)
-	assert.Nil(t, err)
-	assert.Greater(t, idx, -1)
-	assert.NotNil(t, storage)
-	assert.Equal(t, storage.ID, storageID)
-	assert.NotZero(t, storage.CreatedAt)
-	assert.NotZero(t, storage.UpdatedAt)
-}
-
-func TestOnStorageRemoved(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	storageRemoved := storage.NewStorageRemoved(aggregate, storageID, "test")
-	err := aggregate.On(storageRemoved)
-	assert.Nil(t, err)
-	assert.Equal(t, aggregate.Version, 1)
-	storage, idx, err := aggregate.GetStorageByID(storageID)
-	assert.NotZero(t, aggregate.School.UpdatedAt)
-	assert.NotNil(t, err)
-	assert.Equal(t, idx, -1)
-	assert.Nil(t, storage)
-	assert.Len(t, aggregate.School.Storages, 0)
-}
-
-func TestOnStorageRenamed(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	storageNameSet := storage.NewStorageNameSet(aggregate, storageID, "storage set", "test")
-	err := aggregate.On(storageNameSet)
-	assert.Nil(t, err)
-	assert.Equal(t, aggregate.Version, 1)
-	assert.NotZero(t, aggregate.School.UpdatedAt)
-	storage, idx, err := aggregate.GetStorageByID(storageID)
-	assert.Nil(t, err)
-	assert.Greater(t, idx, -1)
-	assert.NotNil(t, storage)
-	assert.Equal(t, storage.Name, "storage set")
-	assert.NotZero(t, storage.UpdatedAt)
-}
-
-func TestOnStorageLocationSet(t *testing.T) {
-	storageID, aggregate := newTestAggregate()
-	storageLocationSet := storage.NewStorageLocationSet(aggregate, storageID, "location set", "test")
-	err := aggregate.On(storageLocationSet)
-	assert.Nil(t, err)
-	assert.Equal(t, aggregate.Version, 1)
-	assert.NotZero(t, aggregate.School.UpdatedAt)
-	storage, idx, err := aggregate.GetStorageByID(storageID)
-	assert.Nil(t, err)
-	assert.Greater(t, idx, -1)
-	assert.NotNil(t, storage)
-	assert.Equal(t, storage.Location, "location set")
-	assert.NotZero(t, storage.UpdatedAt)
-}
-
-func TestOnUnknownEvent(t *testing.T) {
-	_, aggregate := newTestAggregate()
-	unknownEvent := &UnknownEvent{EventModel: common.EventModel{ID: uuid.New().String(), Version: 4, At: time.Now()}}
-	err := aggregate.On(unknownEvent)
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.UnknownEventError(unknownEvent))
+	storageID := uuid.NewString()
+	tests := []struct {
+		name              string
+		eventVersion      int
+		eventAt           time.Time
+		storageName       string
+		storageLocation   string
+		reason            string
+		event             common.Event
+		err               error
+		expectError       bool
+		addDefaultStorage bool
+		operation         string
+	}{
+		{
+			name:              "on storage added",
+			eventVersion:      1,
+			eventAt:           time.Now(),
+			storageName:       "storage",
+			storageLocation:   "location",
+			reason:            "test",
+			event:             storage.StorageAdded{},
+			err:               nil,
+			expectError:       false,
+			addDefaultStorage: false,
+			operation:         "add",
+		},
+		{
+			name:              "try add storage twice",
+			eventVersion:      1,
+			eventAt:           time.Now(),
+			storageName:       "storage",
+			storageLocation:   "location",
+			reason:            "test",
+			event:             storage.StorageAdded{},
+			err:               storage.StoragesWithIdAlreadyExistsError(storageID),
+			expectError:       true,
+			addDefaultStorage: true,
+		},
+		{
+			name:              "on storage removed",
+			eventVersion:      7,
+			eventAt:           time.Now(),
+			storageName:       "storage",
+			storageLocation:   "location",
+			reason:            "test",
+			event:             storage.StorageRemoved{},
+			err:               storage.StorageIDNotFoundError(storageID),
+			expectError:       false,
+			addDefaultStorage: true,
+			operation:         "remove",
+		},
+		{
+			name:              "remove non existing storage",
+			eventVersion:      34,
+			eventAt:           time.Now(),
+			storageName:       "storage",
+			storageLocation:   "location",
+			reason:            "test",
+			event:             storage.StorageRemoved{},
+			err:               storage.StorageIDNotFoundError(storageID),
+			expectError:       true,
+			addDefaultStorage: false,
+			operation:         "remove",
+		},
+		{
+			name:              "on storage renamed",
+			eventVersion:      5,
+			eventAt:           time.Now(),
+			storageName:       "storage renamed",
+			storageLocation:   "location",
+			reason:            "test",
+			event:             storage.StorageRenamed{},
+			err:               nil,
+			expectError:       false,
+			addDefaultStorage: true,
+			operation:         "update",
+		},
+		{
+			name:              "rename non existing storage",
+			eventVersion:      3,
+			eventAt:           time.Now(),
+			storageName:       "storage renamed",
+			storageLocation:   "location",
+			reason:            "test",
+			event:             storage.StorageRenamed{},
+			err:               storage.StorageIDNotFoundError(storageID),
+			expectError:       true,
+			addDefaultStorage: false,
+		},
+		{
+			name:              "on storage relocated",
+			eventVersion:      40,
+			eventAt:           time.Now(),
+			storageName:       "storage",
+			storageLocation:   "location relocated",
+			reason:            "test",
+			event:             storage.StorageRelocated{},
+			err:               nil,
+			expectError:       false,
+			addDefaultStorage: true,
+			operation:         "update",
+		},
+		{
+			name:              "relocate non existing storage",
+			eventVersion:      9,
+			storageName:       "storage",
+			storageLocation:   "location relocated",
+			reason:            "test",
+			event:             storage.StorageRelocated{},
+			err:               storage.StorageIDNotFoundError(storageID),
+			expectError:       true,
+			addDefaultStorage: false,
+		},
+		{
+			name:              "unknown event",
+			eventVersion:      9,
+			eventAt:           time.Now(),
+			storageName:       "storage",
+			storageLocation:   "location",
+			reason:            "test",
+			event:             UnknownEvent{},
+			err:               storage.UnknownEventError(UnknownEvent{}),
+			expectError:       true,
+			addDefaultStorage: false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var event common.Event
+			switch test.event.(type) {
+			case storage.StorageAdded:
+				event = &storage.StorageAdded{
+					EventModel: common.EventModel{
+						Version: test.eventVersion,
+						At:      test.eventAt,
+					},
+					StorageID: storageID,
+					Name:      test.storageName,
+					Location:  test.storageLocation,
+				}
+				break
+			case storage.StorageRemoved:
+				event = &storage.StorageRemoved{
+					EventModel: common.EventModel{
+						Version: test.eventVersion,
+						At:      test.eventAt,
+					},
+					StorageID: storageID,
+					Reason:    test.reason,
+				}
+				break
+			case storage.StorageRenamed:
+				event = &storage.StorageRenamed{
+					EventModel: common.EventModel{
+						Version: test.eventVersion,
+						At:      test.eventAt,
+					},
+					StorageID: storageID,
+					Name:      test.storageName,
+					Reason:    test.reason,
+				}
+				break
+			case storage.StorageRelocated:
+				event = &storage.StorageRelocated{
+					EventModel: common.EventModel{
+						Version: test.eventVersion,
+						At:      test.eventAt,
+					},
+					StorageID: storageID,
+					Location:  test.storageLocation,
+					Reason:    test.reason,
+				}
+				break
+			default:
+				event = test.event
+				break
+			}
+			aggregate := storage.NewStorageAggregateRoot()
+			if test.addDefaultStorage {
+				aggregate.Storages = append(aggregate.Storages, storage.Storage{
+					ID:       storageID,
+					Name:     "storage",
+					Location: "location",
+				})
+			}
+			err := aggregate.On(event)
+			if test.expectError {
+				assert.Equal(t, test.err, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, test.eventVersion, aggregate.Version)
+			storage, idx, err := aggregate.GetStorageByID(storageID)
+			if test.operation == "remove" {
+				assert.Equal(t, test.err, err)
+				assert.Equal(t, -1, idx)
+				return
+			}
+			if test.operation == "add" {
+				assert.Equal(t, test.eventAt, storage.CreatedAt)
+			}
+			if test.operation == "update" {
+				assert.Equal(t, test.eventAt, storage.UpdatedAt)
+			}
+			assert.NoError(t, err)
+			assert.Greater(t, idx, -1)
+			assert.NotNil(t, storage)
+			assert.Equal(t, test.storageName, storage.Name)
+			assert.Equal(t, test.storageLocation, storage.Location)
+		})
+	}
 }

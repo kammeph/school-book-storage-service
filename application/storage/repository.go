@@ -8,17 +8,17 @@ import (
 
 func NewStorageRepository(store common.Store, serializer common.Serializer, broker common.MessageBroker) *common.Repository {
 	domainEvents := []domain.Event{
-		storage.StorageCreated{},
+		storage.StorageAdded{},
 		storage.StorageRemoved{},
-		storage.StorageNameSet{},
-		storage.StorageLocationSet{},
+		storage.StorageRenamed{},
+		storage.StorageRelocated{},
 	}
 	for _, event := range domainEvents {
 		serializer.Bind(event)
 	}
 	if broker != nil {
-		broker.Subscribe(storage.StorageCreated{}, NewStorageCreatedEventHandler())
-		broker.Subscribe(storage.StorageNameSet{}, NewStorageNameSetEventHandler())
+		broker.Subscribe(storage.StorageAdded{}, NewStorageAddedEventHandler())
+		broker.Subscribe(storage.StorageRenamed{}, NewStorageRenamedSetEventHandler())
 	}
-	return common.NewRepository(&storage.SchoolAggregateRoot{}, store, serializer, broker)
+	return common.NewRepository(&storage.StorageAggregateRoot{}, store, serializer, broker)
 }

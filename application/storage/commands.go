@@ -42,7 +42,7 @@ func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorage
 	if err != nil {
 		return StorageIDDto{}, err
 	}
-	school, ok := aggregate.(*storage.SchoolAggregateRoot)
+	school, ok := aggregate.(*storage.StorageAggregateRoot)
 	if !ok {
 		return StorageIDDto{}, IncorrectAggregateTypeError(aggregate)
 	}
@@ -73,7 +73,7 @@ func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveS
 	if err != nil {
 		return err
 	}
-	school, ok := aggregate.(*storage.SchoolAggregateRoot)
+	school, ok := aggregate.(*storage.StorageAggregateRoot)
 	if !ok {
 		return IncorrectAggregateTypeError(aggregate)
 	}
@@ -104,11 +104,11 @@ func (h SetStorageNameCommandHandler) Handle(ctx context.Context, command SetSto
 	if err != nil {
 		return err
 	}
-	school, ok := aggregate.(*storage.SchoolAggregateRoot)
+	school, ok := aggregate.(*storage.StorageAggregateRoot)
 	if !ok {
 		return IncorrectAggregateTypeError(aggregate)
 	}
-	err = school.SetStorageName(command.StorageID, command.Name, command.Reason)
+	err = school.RenameStorage(command.StorageID, command.Name, command.Reason)
 	if err != nil {
 		return err
 	}
@@ -135,11 +135,11 @@ func (h SetStorageLocationCommandHandler) Handle(ctx context.Context, command Se
 	if err != nil {
 		return err
 	}
-	school, ok := aggregate.(*storage.SchoolAggregateRoot)
+	school, ok := aggregate.(*storage.StorageAggregateRoot)
 	if !ok {
 		return IncorrectAggregateTypeError(aggregate)
 	}
-	err = school.SetStorageLocation(command.StorageID, command.Location, command.Reason)
+	err = school.RelocateStorage(command.StorageID, command.Location, command.Reason)
 	if err != nil {
 		return err
 	}

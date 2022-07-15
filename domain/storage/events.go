@@ -6,18 +6,23 @@ import (
 	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
-type StorageCreated struct {
+type StorageAdded struct {
 	common.EventModel
 	StorageID string
+	Name      string
+	Location  string
 }
 
-func NewStorageCreated(aggregate SchoolAggregateRoot, storageID string) *StorageCreated {
-	return &StorageCreated{
+func NewStorageAdded(aggregate StorageAggregateRoot, storageID, name, location string) *StorageAdded {
+	return &StorageAdded{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now()},
+			At:      time.Now(),
+		},
 		StorageID: storageID,
+		Name:      name,
+		Location:  location,
 	}
 }
 
@@ -27,49 +32,52 @@ type StorageRemoved struct {
 	Reason    string
 }
 
-func NewStorageRemoved(aggregate SchoolAggregateRoot, storageID string, reason string) *StorageRemoved {
+func NewStorageRemoved(aggregate StorageAggregateRoot, storageID string, reason string) *StorageRemoved {
 	return &StorageRemoved{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now()},
+			At:      time.Now(),
+		},
 		StorageID: storageID,
 		Reason:    reason,
 	}
 }
 
-type StorageNameSet struct {
+type StorageRenamed struct {
 	common.EventModel
 	StorageID string
 	Name      string
 	Reason    string
 }
 
-func NewStorageNameSet(aggregate SchoolAggregateRoot, storageID string, name, reason string) *StorageNameSet {
-	return &StorageNameSet{
+func NewStorageRenamed(aggregate StorageAggregateRoot, storageID string, name, reason string) *StorageRenamed {
+	return &StorageRenamed{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now()},
+			At:      time.Now(),
+		},
 		StorageID: storageID,
 		Name:      name,
 		Reason:    reason,
 	}
 }
 
-type StorageLocationSet struct {
+type StorageRelocated struct {
 	common.EventModel
 	StorageID string
 	Location  string
 	Reason    string
 }
 
-func NewStorageLocationSet(aggregate SchoolAggregateRoot, storageID string, location, reason string) *StorageLocationSet {
-	return &StorageLocationSet{
+func NewStorageRelocated(aggregate StorageAggregateRoot, storageID string, location, reason string) *StorageRelocated {
+	return &StorageRelocated{
 		EventModel: common.EventModel{
 			ID:      aggregate.AggregateID(),
 			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now()},
+			At:      time.Now(),
+		},
 		StorageID: storageID,
 		Location:  location,
 		Reason:    reason,

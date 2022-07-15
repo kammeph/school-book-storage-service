@@ -2,8 +2,6 @@ package storage
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Storage struct {
@@ -14,20 +12,11 @@ type Storage struct {
 	UpdatedAt time.Time
 }
 
-func NewStorage(id string, timeStamp time.Time) Storage {
-	return Storage{ID: id, CreatedAt: timeStamp, UpdatedAt: timeStamp}
-}
-
-type School struct {
-	ID        string
-	UpdatedAt time.Time
-	Storages  []Storage
-}
-
-func NewSchool() School {
-	return School{ID: uuid.New().String(), Storages: []Storage{}}
-}
-
-func NewSchoolWithID(id string) School {
-	return School{ID: id, Storages: []Storage{}}
+func NewStorage(id, name, location string, timeStamp time.Time) Storage {
+	return Storage{
+		ID:        id,
+		Name:      name,
+		Location:  location,
+		CreatedAt: timeStamp,
+	}
 }
