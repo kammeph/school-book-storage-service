@@ -29,7 +29,7 @@ func (a AggregateModel) DomainEvents() []Event {
 	return a.Events
 }
 
-func (a AggregateModel) Load(events []Event) error {
+func (a *AggregateModel) Load(events []Event) error {
 	for _, event := range events {
 		err := a.on(event)
 		if err != nil {
@@ -39,7 +39,7 @@ func (a AggregateModel) Load(events []Event) error {
 	return nil
 }
 
-func (a AggregateModel) Apply(event Event) error {
+func (a *AggregateModel) Apply(event Event) error {
 	err := a.on(event)
 	if err != nil {
 		return err
