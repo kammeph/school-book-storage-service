@@ -14,21 +14,8 @@ type UnknownEvent struct {
 	common.EventModel
 }
 
-func newTestAggregate() (string, storage.StorageAggregateRoot) {
-	storageID := uuid.New().String()
-	aggregate := storage.NewStorageAggregateRoot()
-	aggregate.Storages = append(
-		aggregate.Storages,
-		storage.Storage{
-			ID:       storageID,
-			Name:     "storage",
-			Location: "location",
-		})
-	return storageID, aggregate
-}
-
-func newTestAggregateWithStorages(storages []storage.Storage) storage.StorageAggregateRoot {
-	aggregate := storage.NewStorageAggregateRoot()
+func newTestAggregateWithStorages(storages []storage.Storage) *storage.StorageAggregate {
+	aggregate := storage.NewStorageAggregate()
 	aggregate.Storages = storages
 	return aggregate
 }
@@ -88,13 +75,11 @@ func TestAddStorage(t *testing.T) {
 				assert.Equal(t, test.err, err)
 				return
 			}
+			assert.NoError(t, err)
 			assert.Len(t, aggregate.DomainEvents(), 1)
+			assert.NotEqual(t, "", storageID)
 			event := aggregate.DomainEvents()[0]
-			v, ok := event.(*storage.StorageAdded)
-			assert.True(t, ok)
-			assert.Equal(t, storageID, v.StorageID)
-			assert.Equal(t, test.storageName, v.Name)
-			assert.Equal(t, test.storageLocation, v.Location)
+			assert.Equal(t, storage.StorageAdded, event.EventType())
 		})
 	}
 }
@@ -147,13 +132,11 @@ func TestRemoveStorage(t *testing.T) {
 				assert.Equal(t, test.err, err)
 				return
 			}
+			assert.NoError(t, err)
 			assert.Len(t, aggregate.DomainEvents(), 1)
-			event := aggregate.DomainEvents()[0]
-			v, ok := event.(*storage.StorageRemoved)
-			assert.True(t, ok)
-			assert.Equal(t, v.Version, 1)
-			assert.Equal(t, v.Reason, test.reason)
 			assert.Len(t, aggregate.Storages, 0)
+			event := aggregate.DomainEvents()[0]
+			assert.Equal(t, storage.StorageRemoved, event.EventType())
 		})
 	}
 }
@@ -226,13 +209,10 @@ func TestRenameStorage(t *testing.T) {
 				assert.Equal(t, test.err, err)
 				return
 			}
+			assert.NoError(t, err)
 			assert.Len(t, aggregate.DomainEvents(), 1)
 			event := aggregate.DomainEvents()[0]
-			v, ok := event.(*storage.StorageRenamed)
-			assert.True(t, ok)
-			assert.Equal(t, test.storageName, v.Name)
-			assert.Equal(t, test.reason, v.Reason)
-			assert.Equal(t, test.storageName, aggregate.Storages[0].Name)
+			assert.Equal(t, storage.StorageRenamed, event.EventType())
 		})
 	}
 }
@@ -305,13 +285,10 @@ func TestSetStorageLocation(t *testing.T) {
 				assert.Equal(t, test.err, err)
 				return
 			}
+			assert.NoError(t, err)
 			assert.Len(t, aggregate.DomainEvents(), 1)
 			event := aggregate.DomainEvents()[0]
-			v, ok := event.(*storage.StorageRelocated)
-			assert.True(t, ok)
-			assert.Equal(t, test.storageLocation, v.Location)
-			assert.Equal(t, test.reason, v.Reason)
-			assert.Equal(t, test.storageLocation, aggregate.Storages[0].Location)
+			assert.Equal(t, storage.StorageRelocated, event.EventType())
 		})
 	}
 }
@@ -325,7 +302,7 @@ func TestOnStorageCreated(t *testing.T) {
 		storageName       string
 		storageLocation   string
 		reason            string
-		event             common.Event
+		eventType         string
 		err               error
 		expectError       bool
 		addDefaultStorage bool
@@ -338,7 +315,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			event:             storage.StorageAdded{},
+			eventType:         storage.StorageAdded,
 			err:               nil,
 			expectError:       false,
 			addDefaultStorage: false,
@@ -351,7 +328,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			event:             storage.StorageAdded{},
+			eventType:         storage.StorageAdded,
 			err:               storage.StoragesWithIdAlreadyExistsError(storageID),
 			expectError:       true,
 			addDefaultStorage: true,
@@ -363,7 +340,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			event:             storage.StorageRemoved{},
+			eventType:         storage.StorageRemoved,
 			err:               storage.StorageIDNotFoundError(storageID),
 			expectError:       false,
 			addDefaultStorage: true,
@@ -376,7 +353,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			event:             storage.StorageRemoved{},
+			eventType:         storage.StorageRemoved,
 			err:               storage.StorageIDNotFoundError(storageID),
 			expectError:       true,
 			addDefaultStorage: false,
@@ -389,7 +366,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage renamed",
 			storageLocation:   "location",
 			reason:            "test",
-			event:             storage.StorageRenamed{},
+			eventType:         storage.StorageRenamed,
 			err:               nil,
 			expectError:       false,
 			addDefaultStorage: true,
@@ -402,7 +379,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage renamed",
 			storageLocation:   "location",
 			reason:            "test",
-			event:             storage.StorageRenamed{},
+			eventType:         storage.StorageRenamed,
 			err:               storage.StorageIDNotFoundError(storageID),
 			expectError:       true,
 			addDefaultStorage: false,
@@ -414,7 +391,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location relocated",
 			reason:            "test",
-			event:             storage.StorageRelocated{},
+			eventType:         storage.StorageRelocated,
 			err:               nil,
 			expectError:       false,
 			addDefaultStorage: true,
@@ -426,7 +403,7 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location relocated",
 			reason:            "test",
-			event:             storage.StorageRelocated{},
+			eventType:         storage.StorageRelocated,
 			err:               storage.StorageIDNotFoundError(storageID),
 			expectError:       true,
 			addDefaultStorage: false,
@@ -438,8 +415,8 @@ func TestOnStorageCreated(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			event:             UnknownEvent{},
-			err:               storage.UnknownEventError(UnknownEvent{}),
+			eventType:         "UnknownEvent",
+			err:               storage.UnknownEventError(&UnknownEvent{}),
 			expectError:       true,
 			addDefaultStorage: false,
 		},
@@ -447,55 +424,48 @@ func TestOnStorageCreated(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var event common.Event
-			switch test.event.(type) {
+			switch test.eventType {
 			case storage.StorageAdded:
-				event = &storage.StorageAdded{
-					EventModel: common.EventModel{
-						Version: test.eventVersion,
-						At:      test.eventAt,
-					},
-					StorageID: storageID,
-					Name:      test.storageName,
-					Location:  test.storageLocation,
+				event = &common.EventModel{
+					Version: test.eventVersion,
+					At:      test.eventAt,
+					Type:    test.eventType,
 				}
+				eventData := storage.StorageAddedEvent{storageID, test.storageName, test.storageLocation}
+				event.SetJsonData(eventData)
 				break
 			case storage.StorageRemoved:
-				event = &storage.StorageRemoved{
-					EventModel: common.EventModel{
-						Version: test.eventVersion,
-						At:      test.eventAt,
-					},
-					StorageID: storageID,
-					Reason:    test.reason,
+				event = &common.EventModel{
+					Version: test.eventVersion,
+					At:      test.eventAt,
+					Type:    test.eventType,
 				}
+				eventData := storage.StorageRemovedEvent{storageID, test.storageName}
+				event.SetJsonData(eventData)
 				break
 			case storage.StorageRenamed:
-				event = &storage.StorageRenamed{
-					EventModel: common.EventModel{
-						Version: test.eventVersion,
-						At:      test.eventAt,
-					},
-					StorageID: storageID,
-					Name:      test.storageName,
-					Reason:    test.reason,
+				event = &common.EventModel{
+					Version: test.eventVersion,
+					At:      test.eventAt,
+					Type:    test.eventType,
 				}
+				eventData := storage.StorageRenamedEvent{storageID, test.storageName, test.reason}
+				event.SetJsonData(eventData)
 				break
 			case storage.StorageRelocated:
-				event = &storage.StorageRelocated{
-					EventModel: common.EventModel{
-						Version: test.eventVersion,
-						At:      test.eventAt,
-					},
-					StorageID: storageID,
-					Location:  test.storageLocation,
-					Reason:    test.reason,
+				event = &common.EventModel{
+					Version: test.eventVersion,
+					At:      test.eventAt,
+					Type:    test.eventType,
 				}
+				eventData := storage.StorageRelocatedEvent{storageID, test.storageLocation, test.reason}
+				event.SetJsonData(eventData)
 				break
 			default:
-				event = test.event
+				event = &UnknownEvent{}
 				break
 			}
-			aggregate := storage.NewStorageAggregateRoot()
+			aggregate := storage.NewStorageAggregate()
 			if test.addDefaultStorage {
 				aggregate.Storages = append(aggregate.Storages, storage.Storage{
 					ID:       storageID,

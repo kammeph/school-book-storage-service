@@ -5,16 +5,21 @@ import (
 	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
-type StorageAggregateRoot struct {
-	common.AggregateModel
+type StorageAggregate struct {
+	*common.AggregateModel
 	Storages []Storage
 }
 
-func NewStorageAggregateRoot() StorageAggregateRoot {
-	return StorageAggregateRoot{Storages: []Storage{}}
+func NewStorageAggregate() *StorageAggregate {
+	aggregate := &StorageAggregate{
+		Storages: []Storage{},
+	}
+	model := common.NewAggregateModel(aggregate.On)
+	aggregate.AggregateModel = &model
+	return aggregate
 }
 
-func (a *StorageAggregateRoot) AddStorage(name, location string) (string, error) {
+func (a *StorageAggregate) AddStorage(name, location string) (string, error) {
 	if name == "" {
 		return "", StorageNameNotSetError
 	}
@@ -27,13 +32,17 @@ func (a *StorageAggregateRoot) AddStorage(name, location string) (string, error)
 		}
 	}
 	storageID := uuid.NewString()
-	event := NewStorageAdded(*a, storageID, name, location)
-	a.On(event)
-	a.Events = append(a.Events, event)
+	event, err := NewStorageAdded(a, storageID, name, location)
+	if err != nil {
+		return "", err
+	}
+	if err := a.Apply(event); err != nil {
+		return "", err
+	}
 	return storageID, nil
 }
 
-func (a *StorageAggregateRoot) RemoveStorage(storageID string, reason string) error {
+func (a *StorageAggregate) RemoveStorage(storageID string, reason string) error {
 	_, _, err := a.GetStorageByID(storageID)
 	if err != nil {
 		return err
@@ -41,13 +50,17 @@ func (a *StorageAggregateRoot) RemoveStorage(storageID string, reason string) er
 	if reason == "" {
 		return ReasonNotSpecifiedError
 	}
-	event := NewStorageRemoved(*a, storageID, reason)
-	a.On(event)
-	a.Events = append(a.Events, event)
+	event, err := NewStorageRemoved(a, storageID, reason)
+	if err != nil {
+		return err
+	}
+	if err := a.Apply(event); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (a *StorageAggregateRoot) RenameStorage(storageID string, name string, reason string) error {
+func (a *StorageAggregate) RenameStorage(storageID string, name string, reason string) error {
 	storage, _, err := a.GetStorageByID(storageID)
 	if err != nil {
 		return err
@@ -66,13 +79,14 @@ func (a *StorageAggregateRoot) RenameStorage(storageID string, name string, reas
 			}
 		}
 	}
-	event := NewStorageRenamed(*a, storageID, name, reason)
-	a.On(event)
-	a.Events = append(a.Events, event)
+	event, err := NewStorageRenamed(a, storageID, name, reason)
+	if err := a.Apply(event); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (a *StorageAggregateRoot) RelocateStorage(storageID string, location string, reason string) error {
+func (a *StorageAggregate) RelocateStorage(storageID string, location string, reason string) error {
 	storage, _, err := a.GetStorageByID(storageID)
 	if err != nil {
 		return err
@@ -91,70 +105,89 @@ func (a *StorageAggregateRoot) RelocateStorage(storageID string, location string
 			}
 		}
 	}
-	event := NewStorageRelocated(*a, storageID, location, reason)
-	a.On(event)
-	a.Events = append(a.Events, event)
+	event, err := NewStorageRelocated(a, storageID, location, reason)
+	if err != nil {
+		return err
+	}
+	if err := a.Apply(event); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (s *StorageAggregateRoot) On(event common.Event) error {
-	switch evt := event.(type) {
-	case *StorageAdded:
-		return s.onStorageAdded(evt)
-	case *StorageRemoved:
-		return s.onStorageRemoved(evt)
-	case *StorageRenamed:
-		return s.onStorageRenamed(evt)
-	case *StorageRelocated:
-		return s.onStorageRelocated(evt)
+func (s *StorageAggregate) On(event common.Event) error {
+	switch event.EventType() {
+	case StorageAdded:
+		return s.onStorageAdded(event)
+	case StorageRemoved:
+		return s.onStorageRemoved(event)
+	case StorageRenamed:
+		return s.onStorageRenamed(event)
+	case StorageRelocated:
+		return s.onStorageRelocated(event)
 	default:
 		return UnknownEventError(event)
 	}
 }
 
-func (a *StorageAggregateRoot) onStorageAdded(event *StorageAdded) error {
-	_, idx, _ := a.GetStorageByID(event.StorageID)
-	if idx > -1 {
-		return StoragesWithIdAlreadyExistsError(event.StorageID)
+func (a *StorageAggregate) onStorageAdded(event common.Event) error {
+	eventData := StorageAddedEvent{}
+	if err := event.GetJsonData(&eventData); err != nil {
+		return err
 	}
-	storage := NewStorage(event.StorageID, event.Name, event.Location, event.EventAt())
+	_, idx, _ := a.GetStorageByID(eventData.StorageID)
+	if idx > -1 {
+		return StoragesWithIdAlreadyExistsError(eventData.StorageID)
+	}
+	storage := NewStorage(eventData.StorageID, eventData.Name, eventData.Location, event.EventAt())
 	a.Version = event.EventVersion()
 	a.Storages = append(a.Storages, storage)
 	return nil
 }
 
-func (a *StorageAggregateRoot) onStorageRemoved(event *StorageRemoved) error {
-	err := a.RemoveStorageByID(event.StorageID)
-	if err != nil {
+func (a *StorageAggregate) onStorageRemoved(event common.Event) error {
+	eventData := StorageRemovedEvent{}
+	if err := event.GetJsonData(&eventData); err != nil {
+		return err
+	}
+	if err := a.RemoveStorageByID(eventData.StorageID); err != nil {
 		return err
 	}
 	a.Version = event.EventVersion()
 	return nil
 }
 
-func (a *StorageAggregateRoot) onStorageRenamed(event *StorageRenamed) error {
-	storage, _, err := a.GetStorageByID(event.StorageID)
+func (a *StorageAggregate) onStorageRenamed(event common.Event) error {
+	eventData := StorageRenamedEvent{}
+	if err := event.GetJsonData(&eventData); err != nil {
+		return err
+	}
+	storage, _, err := a.GetStorageByID(eventData.StorageID)
 	if err != nil {
 		return err
 	}
 	a.Version = event.EventVersion()
 	storage.UpdatedAt = event.EventAt()
-	storage.Name = event.Name
+	storage.Name = eventData.Name
 	return nil
 }
 
-func (a *StorageAggregateRoot) onStorageRelocated(event *StorageRelocated) error {
-	storage, _, err := a.GetStorageByID(event.StorageID)
+func (a *StorageAggregate) onStorageRelocated(event common.Event) error {
+	eventData := StorageRelocatedEvent{}
+	if err := event.GetJsonData(&eventData); err != nil {
+		return err
+	}
+	storage, _, err := a.GetStorageByID(eventData.StorageID)
 	if err != nil {
 		return err
 	}
 	a.Version = event.EventVersion()
 	storage.UpdatedAt = event.EventAt()
-	storage.Location = event.Location
+	storage.Location = eventData.Location
 	return nil
 }
 
-func (a *StorageAggregateRoot) GetStorageByID(id string) (*Storage, int, error) {
+func (a *StorageAggregate) GetStorageByID(id string) (*Storage, int, error) {
 	for idx, s := range a.Storages {
 		if s.ID == id {
 			return &a.Storages[idx], idx, nil
@@ -163,7 +196,7 @@ func (a *StorageAggregateRoot) GetStorageByID(id string) (*Storage, int, error) 
 	return nil, -1, StorageIDNotFoundError(id)
 }
 
-func (a *StorageAggregateRoot) RemoveStorageByID(id string) error {
+func (a *StorageAggregate) RemoveStorageByID(id string) error {
 	_, idx, err := a.GetStorageByID(id)
 	if err != nil {
 		return err
@@ -172,7 +205,7 @@ func (a *StorageAggregateRoot) RemoveStorageByID(id string) error {
 	return nil
 }
 
-func (a StorageAggregateRoot) GetStorageByName(name string) (*Storage, error) {
+func (a StorageAggregate) GetStorageByName(name string) (*Storage, error) {
 	storages := a.getStoragesByName(name)
 	if len(storages) == 0 {
 		return nil, StorageByNameNotFoundError(name)
@@ -183,7 +216,7 @@ func (a StorageAggregateRoot) GetStorageByName(name string) (*Storage, error) {
 	return &storages[0], nil
 }
 
-func (a StorageAggregateRoot) getStoragesByName(name string) []Storage {
+func (a StorageAggregate) getStoragesByName(name string) []Storage {
 	storages := []Storage{}
 	for _, storage := range a.Storages {
 		if storage.Name == name {
@@ -193,7 +226,7 @@ func (a StorageAggregateRoot) getStoragesByName(name string) []Storage {
 	return storages
 }
 
-func (a StorageAggregateRoot) getStoragesByLocation(location string) []Storage {
+func (a StorageAggregate) getStoragesByLocation(location string) []Storage {
 	storages := []Storage{}
 	for _, storage := range a.Storages {
 		if storage.Location == location {
