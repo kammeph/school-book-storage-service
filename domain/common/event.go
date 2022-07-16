@@ -24,7 +24,7 @@ type EventModel struct {
 }
 
 func NewEvent(aggregate Aggregate, eventType string) Event {
-	return EventModel{
+	return &EventModel{
 		ID:      aggregate.AggregateID(),
 		Version: aggregate.AggregateVersion() + 1,
 		At:      time.Now(),
@@ -56,7 +56,7 @@ func (m EventModel) GetJsonData(data interface{}) error {
 	return json.Unmarshal([]byte(m.Data), data)
 }
 
-func (m EventModel) SetJsonData(data interface{}) error {
+func (m *EventModel) SetJsonData(data interface{}) error {
 	eventData, err := json.Marshal(data)
 	if err != nil {
 		return err
