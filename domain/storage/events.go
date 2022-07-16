@@ -1,85 +1,86 @@
 package storage
 
 import (
-	"time"
-
 	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
-type StorageAdded struct {
-	common.EventModel
+var (
+	StorageAdded     = "STORAGE_ADDED"
+	StorageRemoved   = "STORAGE_REMOVED"
+	StorageRenamed   = "STORAGE_RENAMED"
+	StorageRelocated = "STORAGE_RELOCATED"
+)
+
+type StorageAddedEvent struct {
 	StorageID string
 	Name      string
 	Location  string
 }
 
-func NewStorageAdded(aggregate StorageAggregateRoot, storageID, name, location string) *StorageAdded {
-	return &StorageAdded{
-		EventModel: common.EventModel{
-			ID:      aggregate.AggregateID(),
-			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now(),
-		},
+func NewStorageAdded(aggregate *StorageAggregate, storageID, name, location string) (common.Event, error) {
+	eventData := StorageAddedEvent{
 		StorageID: storageID,
 		Name:      name,
 		Location:  location,
 	}
+	event := common.NewEvent(aggregate, StorageAdded)
+	if err := event.SetJsonData(eventData); err != nil {
+		return nil, err
+	}
+	return event, nil
 }
 
-type StorageRemoved struct {
-	common.EventModel
+type StorageRemovedEvent struct {
 	StorageID string
 	Reason    string
 }
 
-func NewStorageRemoved(aggregate StorageAggregateRoot, storageID string, reason string) *StorageRemoved {
-	return &StorageRemoved{
-		EventModel: common.EventModel{
-			ID:      aggregate.AggregateID(),
-			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now(),
-		},
+func NewStorageRemoved(aggregate *StorageAggregate, storageID string, reason string) (common.Event, error) {
+	eventData := StorageRemovedEvent{
 		StorageID: storageID,
 		Reason:    reason,
 	}
+	event := common.NewEvent(aggregate, StorageRemoved)
+	if err := event.SetJsonData(eventData); err != nil {
+		return nil, err
+	}
+	return event, nil
 }
 
-type StorageRenamed struct {
-	common.EventModel
+type StorageRenamedEvent struct {
 	StorageID string
 	Name      string
 	Reason    string
 }
 
-func NewStorageRenamed(aggregate StorageAggregateRoot, storageID string, name, reason string) *StorageRenamed {
-	return &StorageRenamed{
-		EventModel: common.EventModel{
-			ID:      aggregate.AggregateID(),
-			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now(),
-		},
+func NewStorageRenamed(aggregate *StorageAggregate, storageID string, name, reason string) (common.Event, error) {
+	eventData := StorageRenamedEvent{
 		StorageID: storageID,
 		Name:      name,
 		Reason:    reason,
 	}
+	event := common.NewEvent(aggregate, StorageRenamed)
+	if err := event.SetJsonData(eventData); err != nil {
+		return nil, err
+	}
+	return event, nil
 }
 
-type StorageRelocated struct {
-	common.EventModel
+type StorageRelocatedEvent struct {
 	StorageID string
 	Location  string
 	Reason    string
 }
 
-func NewStorageRelocated(aggregate StorageAggregateRoot, storageID string, location, reason string) *StorageRelocated {
-	return &StorageRelocated{
-		EventModel: common.EventModel{
-			ID:      aggregate.AggregateID(),
-			Version: aggregate.AggregateVersion() + 1,
-			At:      time.Now(),
-		},
+func NewStorageRelocated(aggregate *StorageAggregate, storageID string, location, reason string) (common.Event, error) {
+	eventData := StorageRelocatedEvent{
 		StorageID: storageID,
 		Location:  location,
 		Reason:    reason,
 	}
+	event := common.NewEvent(aggregate, StorageRelocated)
+	if err := event.SetJsonData(eventData); err != nil {
+		return nil, err
+	}
+	return event, nil
 }
