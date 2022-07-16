@@ -12,9 +12,9 @@ var (
 )
 
 type StorageAddedEvent struct {
-	StorageID string
-	Name      string
-	Location  string
+	StorageID string `json:"storageId"`
+	Name      string `json:"name"`
+	Location  string `json:"location"`
 }
 
 func NewStorageAdded(aggregate *StorageAggregate, storageID, name, location string) (common.Event, error) {
@@ -31,8 +31,8 @@ func NewStorageAdded(aggregate *StorageAggregate, storageID, name, location stri
 }
 
 type StorageRemovedEvent struct {
-	StorageID string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Reason    string `json:"reason"`
 }
 
 func NewStorageRemoved(aggregate *StorageAggregate, storageID string, reason string) (common.Event, error) {
@@ -48,9 +48,9 @@ func NewStorageRemoved(aggregate *StorageAggregate, storageID string, reason str
 }
 
 type StorageRenamedEvent struct {
-	StorageID string
-	Name      string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Name      string `json:"name"`
+	Reason    string `json:"reason"`
 }
 
 func NewStorageRenamed(aggregate *StorageAggregate, storageID string, name, reason string) (common.Event, error) {
@@ -67,9 +67,9 @@ func NewStorageRenamed(aggregate *StorageAggregate, storageID string, name, reas
 }
 
 type StorageRelocatedEvent struct {
-	StorageID string
-	Location  string
-	Reason    string
+	StorageID string `json:"storageId"`
+	Location  string `json:"location"`
+	Reason    string `json:"reason"`
 }
 
 func NewStorageRelocated(aggregate *StorageAggregate, storageID string, location, reason string) (common.Event, error) {
