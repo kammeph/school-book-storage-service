@@ -8,8 +8,6 @@ import (
 	"github.com/kammeph/school-book-storage-service/application/common"
 	"github.com/kammeph/school-book-storage-service/application/storage"
 	domain_common "github.com/kammeph/school-book-storage-service/domain/common"
-	domain "github.com/kammeph/school-book-storage-service/domain/storage"
-	"github.com/kammeph/school-book-storage-service/infrastructure/serializers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,77 +20,63 @@ func (e *EntityAggregate) On(event domain_common.Event) error {
 }
 
 type memoryStore struct {
-	eventsById map[string][]common.Record
+	eventsById map[string][]domain_common.Event
 }
 
-func (s *memoryStore) Save(ctx context.Context, aggregateID string, records ...common.Record) error {
-	if _, ok := s.eventsById[aggregateID]; !ok {
-		s.eventsById[aggregateID] = []common.Record{}
+func (s *memoryStore) Save(ctx context.Context, aggregate domain_common.Aggregate) error {
+	if _, ok := s.eventsById[aggregate.AggregateID()]; !ok {
+		s.eventsById[aggregate.AggregateID()] = []domain_common.Event{}
 	}
-	history := append(s.eventsById[aggregateID], records...)
-	s.eventsById[aggregateID] = history
+	history := append(s.eventsById[aggregate.AggregateID()], aggregate.DomainEvents()...)
+	s.eventsById[aggregate.AggregateID()] = history
 	return nil
 }
 
-func (s *memoryStore) Load(ctx context.Context, aggregateID string) ([]common.Record, error) {
-	_, ok := s.eventsById[aggregateID]
-	if ok {
-		return s.eventsById[aggregateID], nil
+func (s *memoryStore) Load(ctx context.Context, aggregate domain_common.Aggregate) error {
+	events, ok := s.eventsById[aggregate.AggregateID()]
+	if !ok {
+		return nil
 	}
-	return nil, nil
+	if err := aggregate.Load(events); err != nil {
+		return err
+	}
+	return nil
 }
 
-var repository = common.NewRepository(
-	&domain.StorageAggregateRoot{},
-	&memoryStore{eventsById: map[string][]common.Record{}},
-	serializers.NewJSONSerializerWithEvents(
-		domain.StorageAdded{},
-		domain.StorageRemoved{},
-		domain.StorageRenamed{},
-		domain.StorageRelocated{},
-	),
-	nil,
-)
-
-var entityRepository = common.NewRepository(
-	&EntityAggregate{},
-	&memoryStore{eventsById: map[string][]common.Record{}},
-	serializers.NewJSONSerializerWithEvents(),
-	nil,
-)
+var store = &memoryStore{eventsById: map[string][]domain_common.Event{}}
 
 func TestHandleAddStorage(t *testing.T) {
-	handler := storage.NewAddStorageCommandHandler(repository)
+	handler := storage.NewAddStorageCommandHandler(store, nil)
 	commandId := uuid.New().String()
 	ctx := context.Background()
-	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
+	add := storage.AddStorageCommand{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
 	storageID, err := handler.Handle(ctx, add)
 	assert.Nil(t, err)
 	assert.NotZero(t, storageID, 3)
 }
 
 func TestHandleRemoveStorage(t *testing.T) {
-	addHandler := storage.NewAddStorageCommandHandler(repository)
+	addHandler := storage.NewAddStorageCommandHandler(store, nil)
 	commandId := uuid.New().String()
 	ctx := context.Background()
-	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	dto, err := addHandler.Handle(ctx, add)
-	removeHandler := storage.NewRemoveStorageCommandHandler(repository)
-	remove := storage.RemoveStorage{CommandModel: common.CommandModel{ID: commandId}, StorageID: dto.StorageID, Reason: "test"}
+	add := storage.AddStorageCommand{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
+	storageID, err := addHandler.Handle(ctx, add)
+	removeHandler := storage.NewRemoveStorageCommandHandler(store, nil)
+	remove := storage.RemoveStorageCommand{CommandModel: common.CommandModel{ID: commandId}, StorageID: storageID, Reason: "test"}
 	err = removeHandler.Handle(ctx, remove)
 	assert.Nil(t, err)
 }
 
 func TestHandleSetStorageName(t *testing.T) {
-	addHandler := storage.NewAddStorageCommandHandler(repository)
+	addHandler := storage.NewAddStorageCommandHandler(store, nil)
 	commandId := uuid.New().String()
 	ctx := context.Background()
-	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	dto, err := addHandler.Handle(ctx, add)
-	setNameHandler := storage.NewSetStorageNameCommandHandler(repository)
-	setName := storage.SetStorageName{
+	add := storage.AddStorageCommand{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
+	storageID, err := addHandler.Handle(ctx, add)
+	setNameHandler := storage.NewRenameStorageCommandHandler(store, nil)
+	setName := storage.RenameStorageCommand{
 		CommandModel: common.CommandModel{ID: commandId},
-		StorageID:    dto.StorageID,
+		StorageID:    storageID,
 		Name:         "storage name set",
 		Reason:       "test",
 	}
@@ -101,28 +85,18 @@ func TestHandleSetStorageName(t *testing.T) {
 }
 
 func TestHandleSetStorageLocation(t *testing.T) {
-	addHandler := storage.NewAddStorageCommandHandler(repository)
+	addHandler := storage.NewAddStorageCommandHandler(store, nil)
 	commandId := uuid.New().String()
 	ctx := context.Background()
-	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
+	add := storage.AddStorageCommand{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
 	dto, err := addHandler.Handle(ctx, add)
-	setLocationHandler := storage.NewSetStorageLocationCommandHandler(repository)
-	setLocation := storage.SetStorageLocation{
+	setLocationHandler := storage.NewRelocateStorageCommandHandler(store, nil)
+	setLocation := storage.RelocateStorageCommand{
 		CommandModel: common.CommandModel{ID: commandId},
-		StorageID:    dto.StorageID,
+		StorageID:    dto,
 		Location:     "location set",
 		Reason:       "test",
 	}
 	err = setLocationHandler.Handle(ctx, setLocation)
 	assert.Nil(t, err)
-}
-
-func TestIncorrectAggregateError(t *testing.T) {
-	handler := storage.NewAddStorageCommandHandler(entityRepository)
-	commandId := uuid.New().String()
-	ctx := context.Background()
-	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	_, err := handler.Handle(ctx, add)
-	assert.NotNil(t, err)
-	assert.Equal(t, err, storage.IncorrectAggregateTypeError(&EntityAggregate{}))
 }
