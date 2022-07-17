@@ -2,15 +2,12 @@ package common
 
 import (
 	"context"
+
+	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
-type Record struct {
-	Version int
-	Data    string
-}
-
 // History represents
-type History []Record
+type History []common.Event
 
 // Len implements sort.Interface
 func (h History) Len() int {
@@ -24,10 +21,10 @@ func (h History) Swap(i, j int) {
 
 // Less implements sort.Interface
 func (h History) Less(i, j int) bool {
-	return h[i].Version < h[j].Version
+	return h[i].EventVersion() < h[j].EventVersion()
 }
 
 type Store interface {
-	Load(ctx context.Context, aggregateID string) ([]Record, error)
-	Save(ctx context.Context, aggregateID string, records ...Record) error
+	Load(ctx context.Context, aggregate common.Aggregate) error
+	Save(ctx context.Context, aggregate common.Aggregate) error
 }
