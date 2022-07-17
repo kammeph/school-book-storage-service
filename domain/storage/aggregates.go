@@ -19,6 +19,12 @@ func NewStorageAggregate() *StorageAggregate {
 	return aggregate
 }
 
+func NewStorageAggregateWithID(id string) *StorageAggregate {
+	aggregate := NewStorageAggregate()
+	aggregate.ID = id
+	return aggregate
+}
+
 func (a *StorageAggregate) AddStorage(name, location string) (string, error) {
 	if name == "" {
 		return "", StorageNameNotSetError

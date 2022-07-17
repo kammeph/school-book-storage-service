@@ -12,6 +12,7 @@ var (
 )
 
 type StorageAddedEvent struct {
+	SchoolID  string `json:"schoolId"`
 	StorageID string `json:"storageId"`
 	Name      string `json:"name"`
 	Location  string `json:"location"`
@@ -19,6 +20,7 @@ type StorageAddedEvent struct {
 
 func NewStorageAdded(aggregate *StorageAggregate, storageID, name, location string) (common.Event, error) {
 	eventData := StorageAddedEvent{
+		SchoolID:  aggregate.AggregateID(),
 		StorageID: storageID,
 		Name:      name,
 		Location:  location,

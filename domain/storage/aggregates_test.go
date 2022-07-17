@@ -431,7 +431,7 @@ func TestOnStorageCreated(t *testing.T) {
 					At:      test.eventAt,
 					Type:    test.eventType,
 				}
-				eventData := storage.StorageAddedEvent{storageID, test.storageName, test.storageLocation}
+				eventData := storage.StorageAddedEvent{"storageAggregate", storageID, test.storageName, test.storageLocation}
 				event.SetJsonData(eventData)
 				break
 			case storage.StorageRemoved:
