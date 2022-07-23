@@ -7,5 +7,5 @@ import (
 )
 
 func IncorrectAggregateTypeError(aggregate common.Aggregate) error {
-	return fmt.Errorf("Incorrect type for aggregate: %T", aggregate)
+	return fmt.Errorf("incorrect type for aggregate: %T", aggregate)
 }

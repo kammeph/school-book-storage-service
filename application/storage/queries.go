@@ -59,7 +59,7 @@ func NewGetStorageByIDQueryHandler(repository StorageWithBooksRepository) GetSto
 }
 
 func (h GetStorageByIDQueryHandler) Handle(ctx context.Context, query GetStorageByID) (domain.StorageWithBooks, error) {
-	return h.repository.GetStorageByID(ctx, query.StorageID)
+	return h.repository.GetStorageByID(ctx, query.AggregateID(), query.StorageID)
 }
 
 type GetStorageByName struct {
@@ -80,5 +80,5 @@ func NewGetStorageByNameQueryHandler(repositoty StorageWithBooksRepository) GetS
 }
 
 func (h GetStorageByNameQueryHandler) Handle(ctx context.Context, query GetStorageByName) (domain.StorageWithBooks, error) {
-	return h.repository.GetStorageByName(ctx, query.Name)
+	return h.repository.GetStorageByName(ctx, query.AggregateID(), query.Name)
 }

@@ -33,11 +33,11 @@ func (c *StorageWithBookRepository) GetAllStoragesBySchoolID(ctx context.Context
 	return storages, nil
 }
 
-func (c *StorageWithBookRepository) GetStorageByID(ctx context.Context, storageID string) (domain.StorageWithBooks, error) {
+func (c *StorageWithBookRepository) GetStorageByID(ctx context.Context, schoolID, storageID string) (domain.StorageWithBooks, error) {
 	filter := bson.D{{Key: "storageId", Value: storageID}}
 	result := c.collection.FindOne(ctx, filter)
 	if result == nil {
-		return domain.StorageWithBooks{}, fmt.Errorf("No storage with ID %s found", storageID)
+		return domain.StorageWithBooks{}, fmt.Errorf("no storage with ID %s found", storageID)
 	}
 
 	storage := domain.StorageWithBooks{}
@@ -47,11 +47,11 @@ func (c *StorageWithBookRepository) GetStorageByID(ctx context.Context, storageI
 	return storage, nil
 }
 
-func (c *StorageWithBookRepository) GetStorageByName(ctx context.Context, name string) (domain.StorageWithBooks, error) {
+func (c *StorageWithBookRepository) GetStorageByName(ctx context.Context, schoolID, name string) (domain.StorageWithBooks, error) {
 	filter := bson.D{{Key: "name", Value: name}}
 	result := c.collection.FindOne(ctx, filter)
 	if result == nil {
-		return domain.StorageWithBooks{}, fmt.Errorf("No storage with name %s found", name)
+		return domain.StorageWithBooks{}, fmt.Errorf("no storage with name %s found", name)
 	}
 
 	storage := domain.StorageWithBooks{}
