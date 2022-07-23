@@ -8,12 +8,35 @@ import (
 )
 
 func TestGetEnv(t *testing.T) {
-	t.Setenv("ENV", "myvariable")
-	v := utils.GetenvOrFallback("ENV", "fallback")
-	assert.Equal(t, v, "myvariable")
-}
-
-func TestGetEnvFallback(t *testing.T) {
-	v := utils.GetenvOrFallback("ENV", "fallback")
-	assert.Equal(t, v, "fallback")
+	tests := []struct {
+		name     string
+		setEnv   bool
+		env      string
+		fallback string
+		expected string
+	}{
+		{
+			name:     "env is set",
+			setEnv:   true,
+			env:      "my ENV",
+			fallback: "my ENV fallback",
+			expected: "my ENV",
+		},
+		{
+			name:     "env is not set",
+			setEnv:   false,
+			env:      "my ENV",
+			fallback: "my ENV fallback",
+			expected: "my ENV fallback",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.setEnv {
+				t.Setenv("ENV", test.env)
+			}
+			v := utils.GetenvOrFallback("ENV", test.fallback)
+			assert.Equal(t, test.expected, v)
+		})
+	}
 }
