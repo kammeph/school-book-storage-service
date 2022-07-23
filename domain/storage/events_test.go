@@ -49,7 +49,7 @@ func TestEventCreation(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aggregate := storage.NewStorageAggregate()
+			aggregate := storage.NewSchoolStorageAggregate()
 			var event common.Event
 			var err error
 			switch test.eventType {

@@ -5,13 +5,13 @@ import (
 	"github.com/kammeph/school-book-storage-service/domain/common"
 )
 
-type StorageAggregate struct {
+type SchoolStorageAggregate struct {
 	*common.AggregateModel
 	Storages []Storage
 }
 
-func NewStorageAggregate() *StorageAggregate {
-	aggregate := &StorageAggregate{
+func NewSchoolStorageAggregate() *SchoolStorageAggregate {
+	aggregate := &SchoolStorageAggregate{
 		Storages: []Storage{},
 	}
 	model := common.NewAggregateModel(aggregate.On)
@@ -19,13 +19,13 @@ func NewStorageAggregate() *StorageAggregate {
 	return aggregate
 }
 
-func NewStorageAggregateWithID(id string) *StorageAggregate {
-	aggregate := NewStorageAggregate()
+func NewSchoolStorageAggregateWithID(id string) *SchoolStorageAggregate {
+	aggregate := NewSchoolStorageAggregate()
 	aggregate.ID = id
 	return aggregate
 }
 
-func (a *StorageAggregate) AddStorage(name, location string) (string, error) {
+func (a *SchoolStorageAggregate) AddStorage(name, location string) (string, error) {
 	if name == "" {
 		return "", StorageNameNotSetError
 	}
@@ -48,7 +48,7 @@ func (a *StorageAggregate) AddStorage(name, location string) (string, error) {
 	return storageID, nil
 }
 
-func (a *StorageAggregate) RemoveStorage(storageID string, reason string) error {
+func (a *SchoolStorageAggregate) RemoveStorage(storageID string, reason string) error {
 	_, _, err := a.GetStorageByID(storageID)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (a *StorageAggregate) RemoveStorage(storageID string, reason string) error 
 	return nil
 }
 
-func (a *StorageAggregate) RenameStorage(storageID string, name string, reason string) error {
+func (a *SchoolStorageAggregate) RenameStorage(storageID string, name string, reason string) error {
 	storage, _, err := a.GetStorageByID(storageID)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (a *StorageAggregate) RenameStorage(storageID string, name string, reason s
 	return nil
 }
 
-func (a *StorageAggregate) RelocateStorage(storageID string, location string, reason string) error {
+func (a *SchoolStorageAggregate) RelocateStorage(storageID string, location string, reason string) error {
 	storage, _, err := a.GetStorageByID(storageID)
 	if err != nil {
 		return err
@@ -121,7 +121,7 @@ func (a *StorageAggregate) RelocateStorage(storageID string, location string, re
 	return nil
 }
 
-func (s *StorageAggregate) On(event common.Event) error {
+func (s *SchoolStorageAggregate) On(event common.Event) error {
 	switch event.EventType() {
 	case StorageAdded:
 		return s.onStorageAdded(event)
@@ -136,7 +136,7 @@ func (s *StorageAggregate) On(event common.Event) error {
 	}
 }
 
-func (a *StorageAggregate) onStorageAdded(event common.Event) error {
+func (a *SchoolStorageAggregate) onStorageAdded(event common.Event) error {
 	eventData := StorageAddedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -151,7 +151,7 @@ func (a *StorageAggregate) onStorageAdded(event common.Event) error {
 	return nil
 }
 
-func (a *StorageAggregate) onStorageRemoved(event common.Event) error {
+func (a *SchoolStorageAggregate) onStorageRemoved(event common.Event) error {
 	eventData := StorageRemovedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -163,7 +163,7 @@ func (a *StorageAggregate) onStorageRemoved(event common.Event) error {
 	return nil
 }
 
-func (a *StorageAggregate) onStorageRenamed(event common.Event) error {
+func (a *SchoolStorageAggregate) onStorageRenamed(event common.Event) error {
 	eventData := StorageRenamedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -178,7 +178,7 @@ func (a *StorageAggregate) onStorageRenamed(event common.Event) error {
 	return nil
 }
 
-func (a *StorageAggregate) onStorageRelocated(event common.Event) error {
+func (a *SchoolStorageAggregate) onStorageRelocated(event common.Event) error {
 	eventData := StorageRelocatedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -193,7 +193,7 @@ func (a *StorageAggregate) onStorageRelocated(event common.Event) error {
 	return nil
 }
 
-func (a *StorageAggregate) GetStorageByID(id string) (*Storage, int, error) {
+func (a *SchoolStorageAggregate) GetStorageByID(id string) (*Storage, int, error) {
 	for idx, s := range a.Storages {
 		if s.ID == id {
 			return &a.Storages[idx], idx, nil
@@ -202,7 +202,7 @@ func (a *StorageAggregate) GetStorageByID(id string) (*Storage, int, error) {
 	return nil, -1, StorageIDNotFoundError(id)
 }
 
-func (a *StorageAggregate) RemoveStorageByID(id string) error {
+func (a *SchoolStorageAggregate) RemoveStorageByID(id string) error {
 	_, idx, err := a.GetStorageByID(id)
 	if err != nil {
 		return err
@@ -211,7 +211,7 @@ func (a *StorageAggregate) RemoveStorageByID(id string) error {
 	return nil
 }
 
-func (a StorageAggregate) GetStorageByName(name string) (*Storage, error) {
+func (a SchoolStorageAggregate) GetStorageByName(name string) (*Storage, error) {
 	storages := a.getStoragesByName(name)
 	if len(storages) == 0 {
 		return nil, StorageByNameNotFoundError(name)
@@ -222,7 +222,7 @@ func (a StorageAggregate) GetStorageByName(name string) (*Storage, error) {
 	return &storages[0], nil
 }
 
-func (a StorageAggregate) getStoragesByName(name string) []Storage {
+func (a SchoolStorageAggregate) getStoragesByName(name string) []Storage {
 	storages := []Storage{}
 	for _, storage := range a.Storages {
 		if storage.Name == name {
@@ -232,7 +232,7 @@ func (a StorageAggregate) getStoragesByName(name string) []Storage {
 	return storages
 }
 
-func (a StorageAggregate) getStoragesByLocation(location string) []Storage {
+func (a SchoolStorageAggregate) getStoragesByLocation(location string) []Storage {
 	storages := []Storage{}
 	for _, storage := range a.Storages {
 		if storage.Location == location {

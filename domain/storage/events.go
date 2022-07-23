@@ -18,7 +18,7 @@ type StorageAddedEvent struct {
 	Location  string `json:"location"`
 }
 
-func NewStorageAdded(aggregate *StorageAggregate, storageID, name, location string) (common.Event, error) {
+func NewStorageAdded(aggregate *SchoolStorageAggregate, storageID, name, location string) (common.Event, error) {
 	eventData := StorageAddedEvent{
 		SchoolID:  aggregate.AggregateID(),
 		StorageID: storageID,
@@ -37,7 +37,7 @@ type StorageRemovedEvent struct {
 	Reason    string `json:"reason"`
 }
 
-func NewStorageRemoved(aggregate *StorageAggregate, storageID string, reason string) (common.Event, error) {
+func NewStorageRemoved(aggregate *SchoolStorageAggregate, storageID string, reason string) (common.Event, error) {
 	eventData := StorageRemovedEvent{
 		StorageID: storageID,
 		Reason:    reason,
@@ -55,7 +55,7 @@ type StorageRenamedEvent struct {
 	Reason    string `json:"reason"`
 }
 
-func NewStorageRenamed(aggregate *StorageAggregate, storageID string, name, reason string) (common.Event, error) {
+func NewStorageRenamed(aggregate *SchoolStorageAggregate, storageID string, name, reason string) (common.Event, error) {
 	eventData := StorageRenamedEvent{
 		StorageID: storageID,
 		Name:      name,
@@ -74,7 +74,7 @@ type StorageRelocatedEvent struct {
 	Reason    string `json:"reason"`
 }
 
-func NewStorageRelocated(aggregate *StorageAggregate, storageID string, location, reason string) (common.Event, error) {
+func NewStorageRelocated(aggregate *SchoolStorageAggregate, storageID string, location, reason string) (common.Event, error) {
 	eventData := StorageRelocatedEvent{
 		StorageID: storageID,
 		Location:  location,

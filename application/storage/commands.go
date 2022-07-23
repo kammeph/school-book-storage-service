@@ -38,7 +38,7 @@ func NewAddStorageCommandHandler(store common.Store, publisher common.EventPubli
 }
 
 func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorageCommand) (string, error) {
-	aggregate := storage.NewStorageAggregateWithID(command.AggregateID())
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.Store().Load(ctx, aggregate); err != nil {
 		return "", err
 	}
@@ -67,7 +67,7 @@ func NewRemoveStorageCommandHandler(store common.Store, publisher common.EventPu
 }
 
 func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveStorageCommand) error {
-	aggregate := storage.NewStorageAggregateWithID(command.AggregateID())
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.Store().Load(ctx, aggregate); err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func NewRenameStorageCommandHandler(store common.Store, publisher common.EventPu
 }
 
 func (h RenameStorageCommandHandler) Handle(ctx context.Context, command RenameStorageCommand) error {
-	aggregate := storage.NewStorageAggregateWithID(command.AggregateID())
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.Store().Load(ctx, aggregate); err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func NewRelocateStorageCommandHandler(store common.Store, publisher common.Event
 }
 
 func (h RelocateStorageCommandHandler) Handle(ctx context.Context, command RelocateStorageCommand) error {
-	aggregate := storage.NewStorageAggregateWithID(command.AggregateID())
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.Store().Load(ctx, aggregate); err != nil {
 		return err
 	}

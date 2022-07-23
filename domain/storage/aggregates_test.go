@@ -14,8 +14,8 @@ type UnknownEvent struct {
 	common.EventModel
 }
 
-func newTestAggregateWithStorages(storages []storage.Storage) *storage.StorageAggregate {
-	aggregate := storage.NewStorageAggregate()
+func newTestAggregateWithStorages(storages []storage.Storage) *storage.SchoolStorageAggregate {
+	aggregate := storage.NewSchoolStorageAggregate()
 	aggregate.Storages = storages
 	return aggregate
 }
@@ -465,7 +465,7 @@ func TestOnStorageCreated(t *testing.T) {
 				event = &UnknownEvent{}
 				break
 			}
-			aggregate := storage.NewStorageAggregate()
+			aggregate := storage.NewSchoolStorageAggregate()
 			if test.addDefaultStorage {
 				aggregate.Storages = append(aggregate.Storages, storage.Storage{
 					ID:       storageID,
