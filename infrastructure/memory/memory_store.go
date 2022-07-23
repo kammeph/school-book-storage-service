@@ -14,21 +14,32 @@ func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{eventsById: map[string][]common.Event{}}
 }
 
-func (s *MemoryStore) Save(ctx context.Context, aggregate common.Aggregate) error {
-	if _, ok := s.eventsById[aggregate.AggregateID()]; !ok {
-		s.eventsById[aggregate.AggregateID()] = []common.Event{}
+func NewMemoryStoreWithEvents(events []common.Event) *MemoryStore {
+	store := NewMemoryStore()
+	if len(events) == 0 {
+		return store
 	}
-	history := append(s.eventsById[aggregate.AggregateID()], aggregate.DomainEvents()...)
-	s.eventsById[aggregate.AggregateID()] = history
+	store.Save(context.TODO(), events)
+	return store
+}
+
+func (s *MemoryStore) Save(ctx context.Context, events []common.Event) error {
+	if len(events) == 0 {
+		return nil
+	}
+	aggregateID := events[0].AggregateID()
+	if _, ok := s.eventsById[aggregateID]; !ok {
+		s.eventsById[aggregateID] = []common.Event{}
+	}
+	history := append(s.eventsById[aggregateID], events...)
+	s.eventsById[aggregateID] = history
 	return nil
 }
 
-func (s *MemoryStore) Load(ctx context.Context, aggregate common.Aggregate) error {
-	events := s.eventsById[aggregate.AggregateID()]
-	for _, event := range events {
-		if err := aggregate.On(event); err != nil {
-			return err
-		}
+func (s *MemoryStore) Load(ctx context.Context, aggregateID string) ([]common.Event, error) {
+	events, ok := s.eventsById[aggregateID]
+	if !ok {
+		return nil, nil
 	}
-	return nil
+	return events, nil
 }

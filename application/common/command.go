@@ -32,8 +32,21 @@ func NewCommandHandlerModel(store Store, publisher EventPublisher) *CommandHandl
 	return &CommandHandlerModel{store, publisher}
 }
 
+func (h *CommandHandlerModel) LoadAggregate(ctx context.Context, aggregate domain.Aggregate) error {
+	events, err := h.store.Load(ctx, aggregate.AggregateID())
+	if err != nil {
+		return err
+	}
+	for _, event := range events {
+		if err := aggregate.On(event); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (h *CommandHandlerModel) SaveAndPublish(ctx context.Context, aggregate domain.Aggregate) error {
-	if err := h.store.Save(ctx, aggregate); err != nil {
+	if err := h.store.Save(ctx, aggregate.DomainEvents()); err != nil {
 		return err
 	}
 	if h.publisher == nil {

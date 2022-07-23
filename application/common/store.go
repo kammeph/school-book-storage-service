@@ -7,6 +7,6 @@ import (
 )
 
 type Store interface {
-	Load(ctx context.Context, aggregate common.Aggregate) error
-	Save(ctx context.Context, aggregate common.Aggregate) error
+	Load(ctx context.Context, aggregateID string) ([]common.Event, error)
+	Save(ctx context.Context, events []common.Event) error
 }

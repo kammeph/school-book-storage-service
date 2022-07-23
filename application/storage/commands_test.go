@@ -10,15 +10,11 @@ import (
 	"github.com/kammeph/school-book-storage-service/application/storage"
 	domain_common "github.com/kammeph/school-book-storage-service/domain/common"
 	domain_storage "github.com/kammeph/school-book-storage-service/domain/storage"
+	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/stretchr/testify/assert"
 )
 
-type memoryStore struct {
-	eventsById map[string][]domain_common.Event
-}
-
-func newMemoryStoreWithDefaultEvents() *memoryStore {
-	store := &memoryStore{eventsById: map[string][]domain_common.Event{}}
+func newMemoryStoreWithDefaultEvents() *memory.MemoryStore {
 	eventDataForRemove, _ := json.Marshal(domain_storage.StorageAddedEvent{
 		SchoolID:  "school",
 		StorageID: "testRemove",
@@ -45,28 +41,7 @@ func newMemoryStoreWithDefaultEvents() *memoryStore {
 		At:      time.Now(),
 		Data:    string(eventDataForUpdate),
 	}
-	store.eventsById["school"] = []domain_common.Event{&eventForRemove, &eventForUpdate}
-	return store
-}
-
-func (s *memoryStore) Save(ctx context.Context, aggregate domain_common.Aggregate) error {
-	if _, ok := s.eventsById[aggregate.AggregateID()]; !ok {
-		s.eventsById[aggregate.AggregateID()] = []domain_common.Event{}
-	}
-	history := append(s.eventsById[aggregate.AggregateID()], aggregate.DomainEvents()...)
-	s.eventsById[aggregate.AggregateID()] = history
-	return nil
-}
-
-func (s *memoryStore) Load(ctx context.Context, aggregate domain_common.Aggregate) error {
-	events, ok := s.eventsById[aggregate.AggregateID()]
-	if !ok {
-		return nil
-	}
-	if err := aggregate.Load(events); err != nil {
-		return err
-	}
-	return nil
+	return memory.NewMemoryStoreWithEvents([]domain_common.Event{&eventForRemove, &eventForUpdate})
 }
 
 var store = newMemoryStoreWithDefaultEvents()
