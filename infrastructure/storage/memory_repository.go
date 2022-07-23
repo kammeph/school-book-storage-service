@@ -74,14 +74,30 @@ func (r *MemoryRepository) GetStorageByName(ctx context.Context, schoolID, name 
 func (r *MemoryRepository) InsertStorage(ctx context.Context, storage storage.StorageWithBooks) {
 	r.storages = append(r.storages, storage)
 }
-func (r *MemoryRepository) DeleteStorage(ctx context.Context, storageID string) {
 
+func (r *MemoryRepository) DeleteStorage(ctx context.Context, storageID string) {
+	for idx, storage := range r.storages {
+		if storage.StorageID == storageID {
+			r.storages = append(r.storages[:idx], r.storages[idx+1:]...)
+			return
+		}
+	}
 }
 
 func (r *MemoryRepository) UpdateStorageName(ctx context.Context, storageID, name string) {
-
+	for idx, storage := range r.storages {
+		if storage.StorageID == storageID {
+			r.storages[idx].Name = name
+			return
+		}
+	}
 }
 
 func (r *MemoryRepository) UpdateStorageLocation(ctx context.Context, storageID, location string) {
-
+	for idx, storage := range r.storages {
+		if storage.StorageID == storageID {
+			r.storages[idx].Location = location
+			return
+		}
+	}
 }

@@ -14,19 +14,21 @@ func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{eventsById: map[string][]common.Event{}}
 }
 
-func (s *MemoryStore) Save(ctx context.Context, aggregateID string, records ...common.Event) error {
-	if _, ok := s.eventsById[aggregateID]; !ok {
-		s.eventsById[aggregateID] = []common.Event{}
+func (s *MemoryStore) Save(ctx context.Context, aggregate common.Aggregate) error {
+	if _, ok := s.eventsById[aggregate.AggregateID()]; !ok {
+		s.eventsById[aggregate.AggregateID()] = []common.Event{}
 	}
-	history := append(s.eventsById[aggregateID], records...)
-	s.eventsById[aggregateID] = history
+	history := append(s.eventsById[aggregate.AggregateID()], aggregate.DomainEvents()...)
+	s.eventsById[aggregate.AggregateID()] = history
 	return nil
 }
 
-func (s *MemoryStore) Load(ctx context.Context, aggregateID string) ([]common.Event, error) {
-	_, ok := s.eventsById[aggregateID]
-	if ok {
-		return s.eventsById[aggregateID], nil
+func (s *MemoryStore) Load(ctx context.Context, aggregate common.Aggregate) error {
+	events := s.eventsById[aggregate.AggregateID()]
+	for _, event := range events {
+		if err := aggregate.On(event); err != nil {
+			return err
+		}
 	}
-	return nil, nil
+	return nil
 }
