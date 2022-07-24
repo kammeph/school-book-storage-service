@@ -44,7 +44,7 @@ func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (c StorageController) SetStorageName(w http.ResponseWriter, r *http.Request) {
+func (c StorageController) RenameStorage(w http.ResponseWriter, r *http.Request) {
 	var command storage.RenameStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
@@ -56,7 +56,7 @@ func (c StorageController) SetStorageName(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (c StorageController) SetStorageLocation(w http.ResponseWriter, r *http.Request) {
+func (c StorageController) RelocateStorage(w http.ResponseWriter, r *http.Request) {
 	var command storage.RelocateStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()

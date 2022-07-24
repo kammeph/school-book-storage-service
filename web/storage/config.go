@@ -79,6 +79,6 @@ func configureEndpoints(controller *StorageController) {
 	http.HandleFunc("/api/storages/get-by-name/", controller.GetStorageByName)
 	http.HandleFunc("/api/storages/add", controller.AddStorage)
 	http.HandleFunc("/api/storages/remove", controller.RemoveStorage)
-	http.HandleFunc("/api/storages/rename", controller.SetStorageName)
-	http.HandleFunc("/api/storages/relocate", controller.SetStorageLocation)
+	http.HandleFunc("/api/storages/rename", controller.RenameStorage)
+	http.HandleFunc("/api/storages/relocate", controller.RelocateStorage)
 }
