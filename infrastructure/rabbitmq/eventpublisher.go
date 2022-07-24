@@ -32,7 +32,9 @@ func (p *RabbitEventPublisher) Publish(ctx context.Context, events []domain.Even
 			return err
 		}
 		msg := amqp.Publishing{Body: eventBytes}
-		return p.channel.Publish(p.exchange, event.EventType(), false, false, msg)
+		if err := p.channel.Publish(p.exchange, event.EventType(), false, false, msg); err != nil {
+			return err
+		}
 
 	}
 	return nil
