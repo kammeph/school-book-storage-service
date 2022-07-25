@@ -12,8 +12,8 @@ type StorageWithBookRepository struct {
 	collection Collection
 }
 
-func NewStorageWithBookRepository(db Client, dbName, tableName string) application.StorageWithBooksRepository {
-	collection := db.Database(dbName).Collection(tableName)
+func NewStorageWithBookRepository(client Client, dbName, tableName string) application.StorageWithBooksRepository {
+	collection := client.Database(dbName).Collection(tableName)
 	return &StorageWithBookRepository{collection}
 }
 

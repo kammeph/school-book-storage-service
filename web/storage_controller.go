@@ -1,4 +1,4 @@
-package storage
+package web
 
 import (
 	"context"
@@ -6,21 +6,20 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kammeph/school-book-storage-service/application/storage"
-	"github.com/kammeph/school-book-storage-service/web/common"
+	"github.com/kammeph/school-book-storage-service/application"
 )
 
 type StorageController struct {
-	commmandHandlers storage.StorageCommandHandlers
-	queryHandlers    storage.StorageQueryHandlers
+	commmandHandlers application.StorageCommandHandlers
+	queryHandlers    application.StorageQueryHandlers
 }
 
-func NewStorageController(commandHandlers storage.StorageCommandHandlers, queryHandlers storage.StorageQueryHandlers) *StorageController {
+func NewStorageController(commandHandlers application.StorageCommandHandlers, queryHandlers application.StorageQueryHandlers) *StorageController {
 	return &StorageController{commandHandlers, queryHandlers}
 }
 
 func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
-	var command storage.AddStorageCommand
+	var command application.AddStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -29,11 +28,11 @@ func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	common.JsonResponse(w, dto)
+	JsonResponse(w, dto)
 }
 
 func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request) {
-	var command storage.RemoveStorageCommand
+	var command application.RemoveStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -45,7 +44,7 @@ func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request)
 }
 
 func (c StorageController) RenameStorage(w http.ResponseWriter, r *http.Request) {
-	var command storage.RenameStorageCommand
+	var command application.RenameStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -57,7 +56,7 @@ func (c StorageController) RenameStorage(w http.ResponseWriter, r *http.Request)
 }
 
 func (c StorageController) RelocateStorage(w http.ResponseWriter, r *http.Request) {
-	var command storage.RelocateStorageCommand
+	var command application.RelocateStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -73,13 +72,13 @@ func (c StorageController) GetAllStorages(w http.ResponseWriter, r *http.Request
 	defer ctx.Done()
 	path := strings.Split(r.URL.Path, "/")
 	aggregateID := path[len(path)-1]
-	query := storage.NewGetAllStorages(aggregateID)
+	query := application.NewGetAllStorages(aggregateID)
 	storages, err := c.queryHandlers.GetAllHandler.Handle(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	common.JsonResponse(w, storages)
+	JsonResponse(w, storages)
 }
 
 func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request) {
@@ -88,13 +87,13 @@ func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request
 	path := strings.Split(r.URL.Path, "/")
 	aggregateID := path[len(path)-2]
 	storageID := path[len(path)-1]
-	query := storage.NewGetStorageByID(aggregateID, storageID)
+	query := application.NewGetStorageByID(aggregateID, storageID)
 	storage, err := c.queryHandlers.GetStorageByIDHandler.Handle(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	common.JsonResponse(w, storage)
+	JsonResponse(w, storage)
 }
 
 func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Request) {
@@ -103,11 +102,11 @@ func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Reque
 	path := strings.Split(r.URL.Path, "/")
 	aggregateID := path[len(path)-2]
 	name := path[len(path)-1]
-	query := storage.NewGetStorageByName(aggregateID, name)
+	query := application.NewGetStorageByName(aggregateID, name)
 	storage, err := c.queryHandlers.GetStorageByNameHandler.Handle(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	common.JsonResponse(w, storage)
+	JsonResponse(w, storage)
 }

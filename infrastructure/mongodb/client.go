@@ -63,7 +63,7 @@ func (c *CollectionWrapper) UpdateOne(ctx context.Context, filter interface{}, d
 	return c.Collection.UpdateOne(ctx, filter, document, opts...)
 }
 
-func NewMongoDB() Client {
+func NewMongoClient() Client {
 	uri := fmt.Sprintf("mongodb://%s:%s@%s:%s", user, password, host, port)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {

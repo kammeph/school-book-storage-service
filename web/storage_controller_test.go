@@ -1,4 +1,4 @@
-package storage_test
+package web_test
 
 import (
 	"encoding/json"
@@ -9,23 +9,21 @@ import (
 	"testing"
 	"time"
 
-	app "github.com/kammeph/school-book-storage-service/application/storage"
-	domain_common "github.com/kammeph/school-book-storage-service/domain/common"
-	domain "github.com/kammeph/school-book-storage-service/domain/storage"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
-	infra "github.com/kammeph/school-book-storage-service/infrastructure/storage"
-	"github.com/kammeph/school-book-storage-service/web/storage"
+	"github.com/kammeph/school-book-storage-service/web"
 	"github.com/stretchr/testify/assert"
 )
 
-func getStorageController() *storage.StorageController {
+func getStorageController() *web.StorageController {
 	eventDataForRemove, _ := json.Marshal(domain.StorageAddedEvent{
 		SchoolID:  "school",
 		StorageID: "testRemove",
 		Name:      "Closet to Remove",
 		Location:  "Room 12",
 	})
-	eventForRemove := domain_common.EventModel{
+	eventForRemove := domain.EventModel{
 		ID:      "school",
 		Type:    domain.StorageAdded,
 		Version: 1,
@@ -38,22 +36,22 @@ func getStorageController() *storage.StorageController {
 		Name:      "Closet to Update",
 		Location:  "Room 12",
 	})
-	eventForUpdate := domain_common.EventModel{
+	eventForUpdate := domain.EventModel{
 		ID:      "school",
 		Type:    domain.StorageAdded,
 		Version: 2,
 		At:      time.Now(),
 		Data:    string(eventDataForUpdate),
 	}
-	store := memory.NewMemoryStoreWithEvents([]domain_common.Event{&eventForRemove, &eventForUpdate})
+	store := memory.NewMemoryStoreWithEvents([]domain.Event{&eventForRemove, &eventForUpdate})
 	storage1School1 := domain.NewStorageWithBooks("school1", "storage1School1", "Closet 1", "Room 101")
 	storage2School1 := domain.NewStorageWithBooks("school1", "storage2School1", "Closet 2", "Room 101")
 	storage1School2 := domain.NewStorageWithBooks("school2", "storage1School2", "Closet 1", "Room 203")
-	repository := infra.NewMemoryRepositoryWithStorages(
+	repository := memory.NewMemoryRepositoryWithStorages(
 		[]domain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
-	commandHandlers := app.NewStorageCommandHandlers(store, nil)
-	queryHandlers := app.NewStorageQueryHandlers(repository)
-	return storage.NewStorageController(commandHandlers, queryHandlers)
+	commandHandlers := application.NewStorageCommandHandlers(store, nil)
+	queryHandlers := application.NewStorageQueryHandlers(repository)
+	return web.NewStorageController(commandHandlers, queryHandlers)
 }
 
 func TestAddStorage(t *testing.T) {

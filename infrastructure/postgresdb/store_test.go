@@ -22,7 +22,7 @@ const (
 func TestNewPostgresStore(t *testing.T) {
 	db, _, err := sqlmock.New()
 	assert.Nil(t, err)
-	store := postgresdb.NewPostgressStore("test", db)
+	store := postgresdb.NewPostgresStore("test", db)
 	assert.NotNil(t, store)
 	pgStore, ok := store.(*postgresdb.PostgresStore)
 	assert.True(t, ok)
@@ -31,7 +31,7 @@ func TestNewPostgresStore(t *testing.T) {
 
 func TestLoad(t *testing.T) {
 	db, mock, _ := sqlmock.New()
-	store := postgresdb.NewPostgressStore("test", db)
+	store := postgresdb.NewPostgresStore("test", db)
 
 	aggregateID := "testSchool"
 	rows := sqlmock.
@@ -74,7 +74,7 @@ func TestSave(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			db, mock, _ := sqlmock.New()
-			store := postgresdb.NewPostgressStore("test", db)
+			store := postgresdb.NewPostgresStore("test", db)
 			rows := sqlmock.NewRows([]string{"version"}).AddRow(test.latestVersion)
 			mock.ExpectPrepare(maxVersionSql).ExpectQuery().WillReturnRows(rows)
 

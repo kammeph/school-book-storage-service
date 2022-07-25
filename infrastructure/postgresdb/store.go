@@ -23,7 +23,7 @@ type PostgresStore struct {
 	db        *sql.DB
 }
 
-func NewPostgressStore(tableName string, db *sql.DB) application.Store {
+func NewPostgresStore(tableName string, db *sql.DB) application.Store {
 	return &PostgresStore{tableName: tableName, db: db}
 }
 

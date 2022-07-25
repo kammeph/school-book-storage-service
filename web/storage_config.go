@@ -1,24 +1,28 @@
-package storage
+package web
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/kammeph/school-book-storage-service/infrastructure"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
+	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
+	"github.com/kammeph/school-book-storage-service/infrastructure/postgresdb"
+	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
 )
 
 func InMemoryConfig() {
 	broker := memory.NewMemoryMessageBroker()
 	store := memory.NewMemoryStore()
-	repository := infrastructure.NewMemoryRepository()
+	repository := memory.NewMemoryRepository()
 
-	eventHandler := storage.NewStorageEventHandler(repository)
+	eventHandler := application.NewStorageEventHandler(repository)
 	broker.Subscribe("storage", eventHandler)
-	broker.Subscribe("storage", &storage.TestHandler{})
+	broker.Subscribe("storage", &application.TestHandler{})
 
-	commandHandlers := storage.NewStorageCommandHandlers(store, broker)
-	queryHandlers := storage.NewStorageQueryHandlers(repository)
+	commandHandlers := application.NewStorageCommandHandlers(store, broker)
+	queryHandlers := application.NewStorageQueryHandlers(repository)
 
 	controller := NewStorageController(commandHandlers, queryHandlers)
 	configureEndpoints(controller)
@@ -32,16 +36,16 @@ func PostgresMongoRabbitConfig() {
 		}
 		fmt.Println("Connection to rabbit mq closed.")
 	}()
-	postgresdb := postgres.NewDB()
+	db := postgresdb.NewPostgresDB()
 	defer func() {
-		if err := postgresdb.Close(); err != nil {
+		if err := db.Close(); err != nil {
 			panic(err)
 		}
 		fmt.Println("Connection to postgres db closed.")
 	}()
-	mongodb := mongodb.NewDB()
+	client := mongodb.NewMongoClient()
 	defer func() {
-		if err := mongodb.Disconnect(context.TODO()); err != nil {
+		if err := client.Disconnect(context.TODO()); err != nil {
 			panic(err)
 		}
 		fmt.Println("Connection to mongo db closed.")
@@ -54,15 +58,15 @@ func PostgresMongoRabbitConfig() {
 	if err != nil {
 		panic(err)
 	}
-	store := postgres.NewPostgressStore("storages", postgresdb)
-	repository := infrastructure.NewStorageWithBookRepository(mongodb, "school_book_storage", "storages")
+	store := postgresdb.NewPostgresStore("storages", db)
+	repository := mongodb.NewStorageWithBookRepository(client, "school_book_storage", "storages")
 
-	eventHandler := storage.NewStorageEventHandler(repository)
+	eventHandler := application.NewStorageEventHandler(repository)
 	subscriber.Subscribe("storage", eventHandler)
-	subscriber.Subscribe("storage", &storage.TestHandler{})
+	subscriber.Subscribe("storage", &application.TestHandler{})
 
-	commandHandlers := storage.NewStorageCommandHandlers(store, publisher)
-	queryHandlers := storage.NewStorageQueryHandlers(repository)
+	commandHandlers := application.NewStorageCommandHandlers(store, publisher)
+	queryHandlers := application.NewStorageQueryHandlers(repository)
 
 	controller := NewStorageController(commandHandlers, queryHandlers)
 	configureEndpoints(controller)
