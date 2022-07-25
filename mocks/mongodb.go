@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/kammeph/school-book-storage-service/domain"
-	"github.com/kammeph/school-book-storage-service/infrastructure"
+	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -16,11 +16,11 @@ type MockClient struct {
 	database *MockDatabase
 }
 
-func NewMockClient() infrastructure.Client {
+func NewMockClient() mongodb.Client {
 	return &MockClient{database: NewMockDatabase()}
 }
 
-func (c *MockClient) Database(name string) infrastructure.Database {
+func (c *MockClient) Database(name string) mongodb.Database {
 	return c.database
 }
 
@@ -37,7 +37,7 @@ func NewMockDatabase() *MockDatabase {
 	return &MockDatabase{collection: &MockCollection{}}
 }
 
-func (d *MockDatabase) Collection(name string) infrastructure.Collection {
+func (d *MockDatabase) Collection(name string) mongodb.Collection {
 	return d.collection
 }
 
@@ -45,7 +45,7 @@ type MockCollection struct {
 	mock.Mock
 }
 
-func (c *MockCollection) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (infrastructure.Cursor, error) {
+func (c *MockCollection) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (mongodb.Cursor, error) {
 	ret := c.Called(ctx, filter)
 
 	var data []byte
@@ -61,7 +61,7 @@ func (c *MockCollection) Find(ctx context.Context, filter interface{}, opts ...*
 	return &MockCursor{data: data}, err
 }
 
-func (c *MockCollection) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) infrastructure.SingleResult {
+func (c *MockCollection) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) mongodb.SingleResult {
 	ret := c.Called(ctx, filter)
 
 	var result *MockSingleResult
@@ -73,12 +73,12 @@ func (c *MockCollection) FindOne(ctx context.Context, filter interface{}, opts .
 	return result
 }
 
-func (c *MockCollection) InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (infrastructure.InsertResult, error) {
+func (c *MockCollection) InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (mongodb.InsertResult, error) {
 	ret := c.Called(ctx, document)
 
-	var result infrastructure.InsertResult
+	var result mongodb.InsertResult
 	if ret.Get(0) != nil {
-		result = ret.Get(0).(infrastructure.InsertResult)
+		result = ret.Get(0).(mongodb.InsertResult)
 	}
 
 	err := ret.Error(1)
@@ -86,12 +86,12 @@ func (c *MockCollection) InsertOne(ctx context.Context, document interface{}, op
 	return result, err
 }
 
-func (c *MockCollection) DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (infrastructure.DeleteResult, error) {
+func (c *MockCollection) DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (mongodb.DeleteResult, error) {
 	ret := c.Called(ctx, filter)
 
-	var result infrastructure.DeleteResult
+	var result mongodb.DeleteResult
 	if ret.Get(0) != nil {
-		result = ret.Get(0).(infrastructure.DeleteResult)
+		result = ret.Get(0).(mongodb.DeleteResult)
 	}
 
 	err := ret.Error(1)
@@ -99,12 +99,12 @@ func (c *MockCollection) DeleteOne(ctx context.Context, filter interface{}, opts
 	return result, err
 }
 
-func (c *MockCollection) UpdateOne(ctx context.Context, filter interface{}, document interface{}, opts ...*options.UpdateOptions) (infrastructure.UpdateResult, error) {
+func (c *MockCollection) UpdateOne(ctx context.Context, filter interface{}, document interface{}, opts ...*options.UpdateOptions) (mongodb.UpdateResult, error) {
 	ret := c.Called(ctx, filter, document)
 
-	var result infrastructure.UpdateResult
+	var result mongodb.UpdateResult
 	if ret.Get(0) != nil {
-		result = ret.Get(0).(infrastructure.UpdateResult)
+		result = ret.Get(0).(mongodb.UpdateResult)
 	}
 
 	err := ret.Error(1)
