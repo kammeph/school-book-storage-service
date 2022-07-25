@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY *.go ./
 
-RUN go build -o /school-book-storage-service
+RUN go build -o ./school-book-storage-service
 
 ##
 ## Deploy
@@ -30,4 +30,4 @@ EXPOSE 9090
 
 USER nonroot
 
-ENTRYPOINT [ "/school-book-storage-service" ]
+ENTRYPOINT [ "./school-book-storage-service" ]
