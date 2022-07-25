@@ -1,4 +1,4 @@
-package storage_test
+package application_test
 
 import (
 	"context"
@@ -6,37 +6,36 @@ import (
 	"testing"
 	"time"
 
-	application "github.com/kammeph/school-book-storage-service/application/storage"
-	"github.com/kammeph/school-book-storage-service/domain/common"
-	domain "github.com/kammeph/school-book-storage-service/domain/storage"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain"
 	infrastructure "github.com/kammeph/school-book-storage-service/infrastructure/storage"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
 	eventHandler = application.NewStorageEventHandler(infrastructure.NewMemoryRepository())
-	storageAdded = common.EventModel{
+	storageAdded = domain.EventModel{
 		ID:      "school1",
 		Version: 1,
 		At:      time.Now(),
 		Type:    domain.StorageAdded,
 		Data:    "{\"schoolId\":\"school1\",\"storageId\":\"storage1\",\"name\":\"closet 2\",\"location\":\"room 101\"}",
 	}
-	storageRenamed = common.EventModel{
+	storageRenamed = domain.EventModel{
 		ID:      "school1",
 		Version: 2,
 		At:      time.Now(),
 		Type:    domain.StorageRenamed,
 		Data:    "{\"storageId\":\"storage1\",\"name\":\"closet renamed\",\"reason\":\"test\"}",
 	}
-	storageRelocated = common.EventModel{
+	storageRelocated = domain.EventModel{
 		ID:      "school1",
 		Version: 3,
 		At:      time.Now(),
 		Type:    domain.StorageRelocated,
 		Data:    "{\"storageId\":\"storage1\",\"location\":\"location 2\",\"reason\":\"test\"}",
 	}
-	storageRemoved = common.EventModel{
+	storageRemoved = domain.EventModel{
 		ID:      "school1",
 		Version: 4,
 		At:      time.Now(),
@@ -48,7 +47,7 @@ var (
 func TestHandle(t *testing.T) {
 	tests := []struct {
 		name  string
-		event common.Event
+		event domain.Event
 	}{
 		{
 			name:  "storage added",

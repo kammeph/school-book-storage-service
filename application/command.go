@@ -1,10 +1,10 @@
-package common
+package application
 
 import (
 	"context"
 	"fmt"
 
-	domain "github.com/kammeph/school-book-storage-service/domain/common"
+	"github.com/kammeph/school-book-storage-service/domain"
 )
 
 type Command interface {

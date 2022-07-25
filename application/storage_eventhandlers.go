@@ -1,25 +1,23 @@
-package storage
+package application
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	application "github.com/kammeph/school-book-storage-service/application/common"
-	"github.com/kammeph/school-book-storage-service/domain/common"
-	domain "github.com/kammeph/school-book-storage-service/domain/storage"
+	"github.com/kammeph/school-book-storage-service/domain"
 )
 
 type StorageEventHandler struct {
 	repository StorageWithBooksRepository
 }
 
-func NewStorageEventHandler(repository StorageWithBooksRepository) application.EventHandler {
+func NewStorageEventHandler(repository StorageWithBooksRepository) EventHandler {
 	return &StorageEventHandler{repository}
 }
 
 func (h StorageEventHandler) Handle(ctx context.Context, eventBytes []byte) {
-	event := &common.EventModel{}
+	event := &domain.EventModel{}
 	if err := json.Unmarshal(eventBytes, event); err != nil {
 		fmt.Print(err)
 	}
@@ -41,7 +39,7 @@ func (h StorageEventHandler) Handle(ctx context.Context, eventBytes []byte) {
 	}
 }
 
-func (h StorageEventHandler) handleStorageAdded(ctx context.Context, event common.Event) {
+func (h StorageEventHandler) handleStorageAdded(ctx context.Context, event domain.Event) {
 	storageAdded := domain.StorageAddedEvent{}
 	if err := json.Unmarshal([]byte(event.EventData()), &storageAdded); err != nil {
 		fmt.Print(err)
@@ -54,7 +52,7 @@ func (h StorageEventHandler) handleStorageAdded(ctx context.Context, event commo
 	h.repository.InsertStorage(ctx, storage)
 }
 
-func (h StorageEventHandler) handleStorageRemoved(ctx context.Context, event common.Event) {
+func (h StorageEventHandler) handleStorageRemoved(ctx context.Context, event domain.Event) {
 	storageRemoved := domain.StorageRemovedEvent{}
 	err := json.Unmarshal([]byte(event.EventData()), &storageRemoved)
 	if err != nil {
@@ -63,7 +61,7 @@ func (h StorageEventHandler) handleStorageRemoved(ctx context.Context, event com
 	h.repository.DeleteStorage(ctx, storageRemoved.StorageID)
 }
 
-func (h StorageEventHandler) handleStorageRenamed(ctx context.Context, event common.Event) {
+func (h StorageEventHandler) handleStorageRenamed(ctx context.Context, event domain.Event) {
 	storageRenamed := domain.StorageRenamedEvent{}
 	err := json.Unmarshal([]byte(event.EventData()), &storageRenamed)
 	if err != nil {
@@ -72,7 +70,7 @@ func (h StorageEventHandler) handleStorageRenamed(ctx context.Context, event com
 	h.repository.UpdateStorageName(ctx, storageRenamed.StorageID, storageRenamed.Name)
 }
 
-func (h StorageEventHandler) handleStorageRelocated(ctx context.Context, event common.Event) {
+func (h StorageEventHandler) handleStorageRelocated(ctx context.Context, event domain.Event) {
 	storageRelocated := domain.StorageRelocatedEvent{}
 	err := json.Unmarshal([]byte(event.EventData()), &storageRelocated)
 	if err != nil {

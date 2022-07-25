@@ -1,11 +1,11 @@
-package storage_test
+package application_test
 
 import (
 	"context"
 	"testing"
 
-	application "github.com/kammeph/school-book-storage-service/application/storage"
-	domain "github.com/kammeph/school-book-storage-service/domain/storage"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain"
 	infrastructure "github.com/kammeph/school-book-storage-service/infrastructure/storage"
 	"github.com/stretchr/testify/assert"
 )

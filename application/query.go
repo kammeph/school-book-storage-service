@@ -1,4 +1,4 @@
-package common
+package application
 
 type QueryModel struct {
 	ID string
