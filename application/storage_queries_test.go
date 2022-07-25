@@ -6,7 +6,7 @@ import (
 
 	"github.com/kammeph/school-book-storage-service/application"
 	"github.com/kammeph/school-book-storage-service/domain"
-	"github.com/kammeph/school-book-storage-service/infrastructure"
+	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,8 +14,8 @@ var (
 	storage1School1        = domain.NewStorageWithBooks("school1", "storage1School1", "Closet 1", "Room 101")
 	storage2School1        = domain.NewStorageWithBooks("school1", "storage2School1", "Closet 2", "Room 101")
 	storage1School2        = domain.NewStorageWithBooks("school2", "storage1School2", "Closet 1", "Room 203")
-	emptyRepository        = infrastructure.NewMemoryRepository()
-	repositoryWithStorages = infrastructure.NewMemoryRepositoryWithStorages(
+	emptyRepository        = memory.NewMemoryRepository()
+	repositoryWithStorages = memory.NewMemoryRepositoryWithStorages(
 		[]domain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
 )
 
@@ -50,7 +50,7 @@ func TestGetAllStorages(t *testing.T) {
 		},
 		{
 			name:             "not initialized repository",
-			repository:       &infrastructure.MemoryRepository{},
+			repository:       &memory.MemoryRepository{},
 			queryID:          "school1",
 			numberOfStorages: 0,
 			expectError:      true,

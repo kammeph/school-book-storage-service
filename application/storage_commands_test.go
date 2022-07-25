@@ -8,11 +8,11 @@ import (
 
 	"github.com/kammeph/school-book-storage-service/application"
 	"github.com/kammeph/school-book-storage-service/domain"
-	"github.com/kammeph/school-book-storage-service/infrastructure"
+	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/stretchr/testify/assert"
 )
 
-func newMemoryStoreWithDefaultEvents() *infrastructure.MemoryStore {
+func newMemoryStoreWithDefaultEvents() *memory.MemoryStore {
 	eventDataForRemove, _ := json.Marshal(domain.StorageAddedEvent{
 		SchoolID:  "school",
 		StorageID: "testRemove",
@@ -39,7 +39,7 @@ func newMemoryStoreWithDefaultEvents() *infrastructure.MemoryStore {
 		At:      time.Now(),
 		Data:    string(eventDataForUpdate),
 	}
-	return infrastructure.NewMemoryStoreWithEvents([]domain.Event{&eventForRemove, &eventForUpdate})
+	return memory.NewMemoryStoreWithEvents([]domain.Event{&eventForRemove, &eventForUpdate})
 }
 
 var store = newMemoryStoreWithDefaultEvents()

@@ -1,4 +1,4 @@
-package infrastructure
+package postgresdb
 
 var (
 	createSchoolsTable = "CREATE TABLE IF NOT EXISTS schools (" +

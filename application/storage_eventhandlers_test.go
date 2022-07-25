@@ -8,12 +8,12 @@ import (
 
 	"github.com/kammeph/school-book-storage-service/application"
 	"github.com/kammeph/school-book-storage-service/domain"
-	"github.com/kammeph/school-book-storage-service/infrastructure"
+	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	eventHandler = application.NewStorageEventHandler(infrastructure.NewMemoryRepository())
+	eventHandler = application.NewStorageEventHandler(memory.NewMemoryRepository())
 	storageAdded = domain.EventModel{
 		ID:      "school1",
 		Version: 1,

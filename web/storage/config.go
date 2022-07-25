@@ -5,12 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kammeph/school-book-storage-service/application/storage"
-	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
-	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
-	"github.com/kammeph/school-book-storage-service/infrastructure/postgres"
-	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
-	infrastructure "github.com/kammeph/school-book-storage-service/infrastructure/storage"
+	"github.com/kammeph/school-book-storage-service/infrastructure"
 )
 
 func InMemoryConfig() {

@@ -1,4 +1,4 @@
-package infrastructure_test
+package rabbitmq_test
 
 import (
 	"testing"
