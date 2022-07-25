@@ -13,7 +13,7 @@ type StorageQueryHandlers struct {
 	GetStorageByNameHandler GetStorageByNameQueryHandler
 }
 
-func NewStorageQueryHandlers(repository *common.Repository) StorageQueryHandlers {
+func NewStorageQueryHandlers(repository StorageWithBooksRepository) StorageQueryHandlers {
 	return StorageQueryHandlers{
 		GetAllHandler:           NewGetAllStoragesQueryHandler(repository),
 		GetStorageByIDHandler:   NewGetStorageByIDQueryHandler(repository),
@@ -30,26 +30,15 @@ func NewGetAllStorages(aggregateID string) GetAllStorages {
 }
 
 type GetAllStoragesQueryHandler struct {
-	repository *common.Repository
+	repository StorageWithBooksRepository
 }
 
-func NewGetAllStoragesQueryHandler(repository *common.Repository) GetAllStoragesQueryHandler {
+func NewGetAllStoragesQueryHandler(repository StorageWithBooksRepository) GetAllStoragesQueryHandler {
 	return GetAllStoragesQueryHandler{repository: repository}
 }
 
-func (h GetAllStoragesQueryHandler) Handle(ctx context.Context, query GetAllStorages) ([]domain.Storage, error) {
-	aggregate, err := h.repository.Load(ctx, query.AggregateID())
-	if err != nil {
-		return nil, err
-	}
-	schoolAggregate, ok := aggregate.(*domain.StorageAggregateRoot)
-	if !ok {
-		return nil, IncorrectAggregateTypeError(aggregate)
-	}
-	if schoolAggregate.Storages == nil {
-		schoolAggregate.Storages = []domain.Storage{}
-	}
-	return schoolAggregate.Storages, nil
+func (h GetAllStoragesQueryHandler) Handle(ctx context.Context, query GetAllStorages) ([]domain.StorageWithBooks, error) {
+	return h.repository.GetAllStoragesBySchoolID(ctx, query.AggregateID())
 }
 
 type GetStorageByID struct {
@@ -62,27 +51,15 @@ func NewGetStorageByID(aggregateID, storageID string) GetStorageByID {
 }
 
 type GetStorageByIDQueryHandler struct {
-	repository *common.Repository
+	repository StorageWithBooksRepository
 }
 
-func NewGetStorageByIDQueryHandler(repository *common.Repository) GetStorageByIDQueryHandler {
+func NewGetStorageByIDQueryHandler(repository StorageWithBooksRepository) GetStorageByIDQueryHandler {
 	return GetStorageByIDQueryHandler{repository: repository}
 }
 
-func (h GetStorageByIDQueryHandler) Handle(ctx context.Context, query GetStorageByID) (domain.Storage, error) {
-	aggregate, err := h.repository.Load(ctx, query.AggregateID())
-	if err != nil {
-		return domain.Storage{}, err
-	}
-	schoolAggregate, ok := aggregate.(*domain.StorageAggregateRoot)
-	if !ok {
-		return domain.Storage{}, IncorrectAggregateTypeError(aggregate)
-	}
-	storage, _, err := schoolAggregate.GetStorageByID(query.StorageID)
-	if err != nil {
-		return domain.Storage{}, err
-	}
-	return *storage, nil
+func (h GetStorageByIDQueryHandler) Handle(ctx context.Context, query GetStorageByID) (domain.StorageWithBooks, error) {
+	return h.repository.GetStorageByID(ctx, query.AggregateID(), query.StorageID)
 }
 
 type GetStorageByName struct {
@@ -95,25 +72,13 @@ func NewGetStorageByName(aggregateID string, name string) GetStorageByName {
 }
 
 type GetStorageByNameQueryHandler struct {
-	repository *common.Repository
+	repository StorageWithBooksRepository
 }
 
-func NewGetStorageByNameQueryHandler(repositoty *common.Repository) GetStorageByNameQueryHandler {
+func NewGetStorageByNameQueryHandler(repositoty StorageWithBooksRepository) GetStorageByNameQueryHandler {
 	return GetStorageByNameQueryHandler{repository: repositoty}
 }
 
-func (h GetStorageByNameQueryHandler) Handle(ctx context.Context, query GetStorageByName) (domain.Storage, error) {
-	aggregate, err := h.repository.Load(ctx, query.AggregateID())
-	if err != nil {
-		return domain.Storage{}, err
-	}
-	schoolAggregate, ok := aggregate.(*domain.StorageAggregateRoot)
-	if !ok {
-		return domain.Storage{}, IncorrectAggregateTypeError(aggregate)
-	}
-	storage, err := schoolAggregate.GetStorageByName(query.Name)
-	if err != nil {
-		return domain.Storage{}, err
-	}
-	return *storage, nil
+func (h GetStorageByNameQueryHandler) Handle(ctx context.Context, query GetStorageByName) (domain.StorageWithBooks, error) {
+	return h.repository.GetStorageByName(ctx, query.AggregateID(), query.Name)
 }

@@ -3,54 +3,97 @@ package storage_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/kammeph/school-book-storage-service/domain/common"
 	"github.com/kammeph/school-book-storage-service/domain/storage"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewStorageCreated(t *testing.T) {
-	storgeID, aggregate := newTestAggregate()
-	name, location := "storage", "location"
-	storageCreated := storage.NewStorageAdded(aggregate, storgeID, name, location)
-	assert.NotNil(t, storageCreated)
-	assert.Equal(t, storageCreated.AggregateID(), aggregate.AggregateID())
-	assert.Equal(t, storageCreated.Version, aggregate.AggregateVersion()+1)
-	assert.NotZero(t, storageCreated.EventAt())
-	assert.Equal(t, storageCreated.StorageID, storgeID)
-	assert.Equal(t, storageCreated.Name, name)
-	assert.Equal(t, storageCreated.Location, location)
-}
-
-func TestNewStorageRemoved(t *testing.T) {
-	storgeID, aggregate := newTestAggregate()
-	storageRemoved := storage.NewStorageRemoved(aggregate, storgeID, "test")
-	assert.NotNil(t, storageRemoved)
-	assert.Equal(t, storageRemoved.AggregateID(), aggregate.AggregateID())
-	assert.Equal(t, storageRemoved.Version, aggregate.AggregateVersion()+1)
-	assert.NotZero(t, storageRemoved.EventAt())
-	assert.Equal(t, storageRemoved.StorageID, storgeID)
-	assert.Equal(t, storageRemoved.Reason, "test")
-}
-
-func TestNewStorageNameSet(t *testing.T) {
-	storgeID, aggregate := newTestAggregate()
-	storageNameSet := storage.NewStorageRenamed(aggregate, storgeID, "storage", "test")
-	assert.NotNil(t, storageNameSet)
-	assert.Equal(t, storageNameSet.AggregateID(), aggregate.AggregateID())
-	assert.Equal(t, storageNameSet.Version, aggregate.AggregateVersion()+1)
-	assert.NotZero(t, storageNameSet.EventAt())
-	assert.Equal(t, storageNameSet.StorageID, storgeID)
-	assert.Equal(t, storageNameSet.Name, "storage")
-	assert.Equal(t, storageNameSet.Reason, "test")
-}
-
-func TestNewStorageLocationSet(t *testing.T) {
-	storgeID, aggregate := newTestAggregate()
-	storageLocationSet := storage.NewStorageRelocated(aggregate, storgeID, "location", "test")
-	assert.NotNil(t, storageLocationSet)
-	assert.Equal(t, storageLocationSet.AggregateID(), aggregate.AggregateID())
-	assert.Equal(t, storageLocationSet.Version, aggregate.AggregateVersion()+1)
-	assert.NotZero(t, storageLocationSet.EventAt())
-	assert.Equal(t, storageLocationSet.StorageID, storgeID)
-	assert.Equal(t, storageLocationSet.Location, "location")
-	assert.Equal(t, storageLocationSet.Reason, "test")
+func TestEventCreation(t *testing.T) {
+	tests := []struct {
+		name            string
+		storageID       string
+		storageName     string
+		storageLocation string
+		reason          string
+		eventType       string
+	}{
+		{
+			name:            "storage added",
+			storageID:       uuid.NewString(),
+			storageName:     "storage",
+			storageLocation: "location",
+			eventType:       storage.StorageAdded,
+		},
+		{
+			name:            "storage removed",
+			storageID:       uuid.NewString(),
+			storageName:     "storage",
+			storageLocation: "location",
+			eventType:       storage.StorageRemoved,
+		},
+		{
+			name:        "storage renamed",
+			storageID:   uuid.NewString(),
+			storageName: "storage",
+			reason:      "test",
+			eventType:   storage.StorageRenamed,
+		},
+		{
+			name:            "storage relocated",
+			storageID:       uuid.NewString(),
+			storageLocation: "location",
+			reason:          "test",
+			eventType:       storage.StorageRelocated,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			aggregate := storage.NewSchoolStorageAggregate()
+			var event common.Event
+			var err error
+			switch test.eventType {
+			case storage.StorageAdded:
+				event, err = storage.NewStorageAdded(
+					aggregate,
+					test.storageID,
+					test.storageName,
+					test.storageLocation,
+				)
+				break
+			case storage.StorageRemoved:
+				event, err = storage.NewStorageRemoved(
+					aggregate,
+					test.storageID,
+					test.reason,
+				)
+				break
+			case storage.StorageRenamed:
+				event, err = storage.NewStorageRenamed(
+					aggregate,
+					test.storageID,
+					test.storageName,
+					test.reason,
+				)
+				break
+			case storage.StorageRelocated:
+				event, err = storage.NewStorageRelocated(
+					aggregate,
+					test.storageID,
+					test.storageLocation,
+					test.reason,
+				)
+				break
+			default:
+				return
+			}
+			assert.NoError(t, err)
+			assert.NotNil(t, event)
+			assert.Equal(t, aggregate.AggregateID(), event.AggregateID())
+			assert.Equal(t, aggregate.AggregateVersion()+1, event.EventVersion())
+			assert.NotZero(t, event.EventAt())
+			assert.Equal(t, test.eventType, event.EventType())
+			assert.NotEqual(t, "", event.EventData())
+		})
+	}
 }

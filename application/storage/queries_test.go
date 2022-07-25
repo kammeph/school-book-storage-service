@@ -4,77 +4,179 @@ import (
 	"context"
 	"testing"
 
-	"github.com/google/uuid"
-	"github.com/kammeph/school-book-storage-service/application/common"
-	"github.com/kammeph/school-book-storage-service/application/storage"
+	application "github.com/kammeph/school-book-storage-service/application/storage"
 	domain "github.com/kammeph/school-book-storage-service/domain/storage"
+	infrastructure "github.com/kammeph/school-book-storage-service/infrastructure/storage"
 	"github.com/stretchr/testify/assert"
 )
 
-func prepareAggregate() (string, string, error) {
-	handler := storage.NewAddStorageCommandHandler(repository)
-	commandId := uuid.New().String()
-	ctx := context.Background()
-	add := storage.AddStorage{CommandModel: common.CommandModel{ID: commandId}, Name: "storage", Location: "location"}
-	dto, err := handler.Handle(ctx, add)
-	return commandId, dto.StorageID, err
-}
+var (
+	storage1School1        = domain.NewStorageWithBooks("school1", "storage1School1", "Closet 1", "Room 101")
+	storage2School1        = domain.NewStorageWithBooks("school1", "storage2School1", "Closet 2", "Room 101")
+	storage1School2        = domain.NewStorageWithBooks("school2", "storage1School2", "Closet 1", "Room 203")
+	emptyRepository        = infrastructure.NewMemoryRepository()
+	repositoryWithStorages = infrastructure.NewMemoryRepositoryWithStorages(
+		[]domain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
+)
 
 func TestGetAllStorages(t *testing.T) {
-	queryID, _, err := prepareAggregate()
-	assert.Nil(t, err)
-	getAllStorages := storage.GetAllStorages{QueryModel: common.QueryModel{ID: queryID}}
-	handler := storage.NewGetAllStoragesQueryHandler(repository)
-	ctx := context.Background()
-	storages, err := handler.Handle(ctx, getAllStorages)
-	assert.Nil(t, err)
-	assert.NotNil(t, storages)
-	assert.Len(t, storages, 1)
-}
+	tests := []struct {
+		name             string
+		repository       application.StorageWithBooksRepository
+		queryID          string
+		numberOfStorages int
+		expectError      bool
+	}{
+		{
+			name:             "get from school 1",
+			repository:       repositoryWithStorages,
+			queryID:          "school1",
+			numberOfStorages: 2,
+			expectError:      false,
+		},
+		{
+			name:             "get from school 2",
+			repository:       repositoryWithStorages,
+			queryID:          "school2",
+			numberOfStorages: 1,
+			expectError:      false,
+		},
+		{
+			name:             "quer empty repository",
+			repository:       emptyRepository,
+			queryID:          "school2",
+			numberOfStorages: 0,
+			expectError:      false,
+		},
+		{
+			name:             "not initialized repository",
+			repository:       &infrastructure.MemoryRepository{},
+			queryID:          "school1",
+			numberOfStorages: 0,
+			expectError:      true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			handler := application.NewGetAllStoragesQueryHandler(test.repository)
+			query := application.NewGetAllStorages(test.queryID)
+			ctx := context.Background()
+			storages, err := handler.Handle(ctx, query)
+			if test.expectError {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.NotNil(t, storages)
+			assert.Len(t, storages, test.numberOfStorages)
 
+		})
+	}
+}
 func TestGetStoragesByID(t *testing.T) {
-	queryID, storageID, err := prepareAggregate()
-	assert.Nil(t, err)
-	getStorageByID := storage.GetStorageByID{QueryModel: common.QueryModel{ID: queryID}, StorageID: storageID}
-	handler := storage.NewGetStorageByIDQueryHandler(repository)
-	ctx := context.Background()
-	storage, err := handler.Handle(ctx, getStorageByID)
-	assert.Nil(t, err)
-	assert.NotZero(t, storage)
-}
-
-func TestGetStorageIDNotFound(t *testing.T) {
-	queryID, _, err := prepareAggregate()
-	storageID := uuid.New().String()
-	assert.Nil(t, err)
-	getStorageByID := storage.GetStorageByID{QueryModel: common.QueryModel{ID: queryID}, StorageID: storageID}
-	handler := storage.NewGetStorageByIDQueryHandler(repository)
-	ctx := context.Background()
-	storage, err := handler.Handle(ctx, getStorageByID)
-	assert.NotNil(t, err)
-	assert.Equal(t, err, domain.StorageIDNotFoundError(storageID))
-	assert.Zero(t, storage)
+	tests := []struct {
+		name        string
+		repository  application.StorageWithBooksRepository
+		queryID     string
+		storageID   string
+		expectError bool
+	}{
+		{
+			name:        "get storage 1 from school 1",
+			repository:  repositoryWithStorages,
+			queryID:     "school1",
+			storageID:   "storage1School1",
+			expectError: false,
+		},
+		{
+			name:        "get storage 2 from school 1",
+			repository:  repositoryWithStorages,
+			queryID:     "school1",
+			storageID:   "storage2School1",
+			expectError: false,
+		},
+		{
+			name:        "get storage 1 from school 2",
+			repository:  repositoryWithStorages,
+			queryID:     "school2",
+			storageID:   "storage1School2",
+			expectError: false,
+		},
+		{
+			name:        "query empty repository",
+			repository:  emptyRepository,
+			queryID:     "school1",
+			storageID:   "storage2School1",
+			expectError: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			handler := application.NewGetStorageByIDQueryHandler(test.repository)
+			query := application.NewGetStorageByID(test.queryID, test.storageID)
+			ctx := context.Background()
+			storage, err := handler.Handle(ctx, query)
+			if test.expectError {
+				assert.Error(t, err)
+				assert.Zero(t, storage)
+				return
+			}
+			assert.NoError(t, err)
+			assert.NotZero(t, storage)
+		})
+	}
 }
 
 func TestGetStoragesByName(t *testing.T) {
-	queryID, _, err := prepareAggregate()
-	assert.Nil(t, err)
-	getStorageByName := storage.GetStorageByName{QueryModel: common.QueryModel{ID: queryID}, Name: "storage"}
-	handler := storage.NewGetStorageByNameQueryHandler(repository)
-	ctx := context.Background()
-	storage, err := handler.Handle(ctx, getStorageByName)
-	assert.Nil(t, err)
-	assert.NotZero(t, storage)
-}
-
-func TestGetStoragesByNameNotFoundError(t *testing.T) {
-	queryID, _, err := prepareAggregate()
-	assert.Nil(t, err)
-	getStorageByName := storage.GetStorageByName{QueryModel: common.QueryModel{ID: queryID}, Name: "unknown"}
-	handler := storage.NewGetStorageByNameQueryHandler(repository)
-	ctx := context.Background()
-	storage, err := handler.Handle(ctx, getStorageByName)
-	assert.NotNil(t, err)
-	assert.Equal(t, err, domain.StorageByNameNotFoundError("unknown"))
-	assert.Zero(t, storage)
+	tests := []struct {
+		name        string
+		repository  application.StorageWithBooksRepository
+		queryID     string
+		storaNamege string
+		expectError bool
+	}{
+		{
+			name:        "school 1 closet 1",
+			repository:  repositoryWithStorages,
+			queryID:     "school1",
+			storaNamege: "Closet 1",
+			expectError: false,
+		},
+		{
+			name:        "school 1 closet 2",
+			repository:  repositoryWithStorages,
+			queryID:     "school1",
+			storaNamege: "Closet 2",
+			expectError: false,
+		},
+		{
+			name:        "school 2 closet 1",
+			repository:  repositoryWithStorages,
+			queryID:     "school2",
+			storaNamege: "Closet 1",
+			expectError: false,
+		},
+		{
+			name:        "try closet 2 from school 2",
+			repository:  repositoryWithStorages,
+			queryID:     "school2",
+			storaNamege: "Closet 2",
+			expectError: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			handler := application.NewGetStorageByNameQueryHandler(test.repository)
+			query := application.NewGetStorageByName(test.queryID, test.storaNamege)
+			ctx := context.Background()
+			storage, err := handler.Handle(ctx, query)
+			if test.expectError {
+				assert.Error(t, err)
+				assert.Zero(t, storage)
+				return
+			}
+			assert.NoError(t, err)
+			assert.NotZero(t, storage)
+		})
+	}
 }

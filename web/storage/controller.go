@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	application "github.com/kammeph/school-book-storage-service/application/common"
 	"github.com/kammeph/school-book-storage-service/application/storage"
 	"github.com/kammeph/school-book-storage-service/web/common"
 )
@@ -16,15 +15,12 @@ type StorageController struct {
 	queryHandlers    storage.StorageQueryHandlers
 }
 
-func NewStorageController(repository *application.Repository) *StorageController {
-	return &StorageController{
-		commmandHandlers: storage.NewStorageCommandHandlers(repository),
-		queryHandlers:    storage.NewStorageQueryHandlers(repository),
-	}
+func NewStorageController(commandHandlers storage.StorageCommandHandlers, queryHandlers storage.StorageQueryHandlers) *StorageController {
+	return &StorageController{commandHandlers, queryHandlers}
 }
 
 func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
-	var command storage.AddStorage
+	var command storage.AddStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -37,7 +33,7 @@ func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request) {
-	var command storage.RemoveStorage
+	var command storage.RemoveStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -48,24 +44,24 @@ func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (c StorageController) SetStorageName(w http.ResponseWriter, r *http.Request) {
-	var command storage.SetStorageName
+func (c StorageController) RenameStorage(w http.ResponseWriter, r *http.Request) {
+	var command storage.RenameStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
-	err := c.commmandHandlers.SetStorageNameHandler.Handle(ctx, command)
+	err := c.commmandHandlers.RenameStorageHandler.Handle(ctx, command)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
 }
 
-func (c StorageController) SetStorageLocation(w http.ResponseWriter, r *http.Request) {
-	var command storage.SetStorageLocation
+func (c StorageController) RelocateStorage(w http.ResponseWriter, r *http.Request) {
+	var command storage.RelocateStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
-	err := c.commmandHandlers.SetStorageLocationHandler.Handle(ctx, command)
+	err := c.commmandHandlers.RelocateStorageHandler.Handle(ctx, command)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return

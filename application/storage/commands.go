@@ -8,140 +8,123 @@ import (
 )
 
 type StorageCommandHandlers struct {
-	AddStorageHandler         AddStorageCommandHandler
-	RemoveStorageHandler      RemoveStorageCommandHandler
-	SetStorageNameHandler     SetStorageNameCommandHandler
-	SetStorageLocationHandler SetStorageLocationCommandHandler
+	AddStorageHandler      AddStorageCommandHandler
+	RemoveStorageHandler   RemoveStorageCommandHandler
+	RenameStorageHandler   RenameStorageCommandHandler
+	RelocateStorageHandler RelocateStorageCommandHandler
 }
 
-func NewStorageCommandHandlers(repository *common.Repository) StorageCommandHandlers {
+func NewStorageCommandHandlers(store common.Store, publisher common.EventPublisher) StorageCommandHandlers {
 	return StorageCommandHandlers{
-		AddStorageHandler:         NewAddStorageCommandHandler(repository),
-		RemoveStorageHandler:      NewRemoveStorageCommandHandler(repository),
-		SetStorageNameHandler:     NewSetStorageNameCommandHandler(repository),
-		SetStorageLocationHandler: NewSetStorageLocationCommandHandler(repository),
+		AddStorageHandler:      NewAddStorageCommandHandler(store, publisher),
+		RemoveStorageHandler:   NewRemoveStorageCommandHandler(store, publisher),
+		RenameStorageHandler:   NewRenameStorageCommandHandler(store, publisher),
+		RelocateStorageHandler: NewRelocateStorageCommandHandler(store, publisher),
 	}
 }
 
-type AddStorage struct {
+type AddStorageCommand struct {
 	common.CommandModel
 	Name     string `json:"name"`
 	Location string `json:"location"`
 }
 
 type AddStorageCommandHandler struct {
-	repository *common.Repository
+	*common.CommandHandlerModel
 }
 
-func NewAddStorageCommandHandler(repository *common.Repository) AddStorageCommandHandler {
-	return AddStorageCommandHandler{repository: repository}
+func NewAddStorageCommandHandler(store common.Store, publisher common.EventPublisher) AddStorageCommandHandler {
+	return AddStorageCommandHandler{common.NewCommandHandlerModel(store, publisher)}
 }
 
-func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorage) (StorageIDDto, error) {
-	aggregate, err := h.repository.Load(ctx, command.AggregateID())
+func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorageCommand) (string, error) {
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
+	if err := h.LoadAggregate(ctx, aggregate); err != nil {
+		return "", err
+	}
+	storageID, err := aggregate.AddStorage(command.Name, command.Location)
 	if err != nil {
-		return StorageIDDto{}, err
+		return "", err
 	}
-	school, ok := aggregate.(*storage.StorageAggregateRoot)
-	if !ok {
-		return StorageIDDto{}, IncorrectAggregateTypeError(aggregate)
+	if err := h.SaveAndPublish(ctx, aggregate); err != nil {
+		return "", err
 	}
-	storageID, err := school.AddStorage(command.Name, command.Location)
-	if err != nil {
-		return StorageIDDto{}, err
-	}
-	err = h.repository.Save(ctx, aggregate)
-	return StorageIDDto{StorageID: storageID}, err
+	return storageID, err
 }
 
-type RemoveStorage struct {
+type RemoveStorageCommand struct {
 	common.CommandModel
 	StorageID string `json:"storageId"`
 	Reason    string `json:"reason"`
 }
 
 type RemoveStorageCommandHandler struct {
-	repository *common.Repository
+	*common.CommandHandlerModel
 }
 
-func NewRemoveStorageCommandHandler(repository *common.Repository) RemoveStorageCommandHandler {
-	return RemoveStorageCommandHandler{repository: repository}
+func NewRemoveStorageCommandHandler(store common.Store, publisher common.EventPublisher) RemoveStorageCommandHandler {
+	return RemoveStorageCommandHandler{common.NewCommandHandlerModel(store, publisher)}
 }
 
-func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveStorage) error {
-	aggregate, err := h.repository.Load(ctx, command.AggregateID())
-	if err != nil {
+func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveStorageCommand) error {
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
+	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return err
 	}
-	school, ok := aggregate.(*storage.StorageAggregateRoot)
-	if !ok {
-		return IncorrectAggregateTypeError(aggregate)
-	}
-	err = school.RemoveStorage(command.StorageID, command.Reason)
-	if err != nil {
+	if err := aggregate.RemoveStorage(command.StorageID, command.Reason); err != nil {
 		return err
 	}
-	return h.repository.Save(ctx, aggregate)
+	return h.SaveAndPublish(ctx, aggregate)
 }
 
-type SetStorageName struct {
+type RenameStorageCommand struct {
 	common.CommandModel
 	StorageID string `json:"storageId"`
 	Name      string `json:"name"`
 	Reason    string `json:"reason"`
 }
 
-type SetStorageNameCommandHandler struct {
-	repository *common.Repository
+type RenameStorageCommandHandler struct {
+	*common.CommandHandlerModel
 }
 
-func NewSetStorageNameCommandHandler(repository *common.Repository) SetStorageNameCommandHandler {
-	return SetStorageNameCommandHandler{repository: repository}
+func NewRenameStorageCommandHandler(store common.Store, publisher common.EventPublisher) RenameStorageCommandHandler {
+	return RenameStorageCommandHandler{common.NewCommandHandlerModel(store, publisher)}
 }
 
-func (h SetStorageNameCommandHandler) Handle(ctx context.Context, command SetStorageName) error {
-	aggregate, err := h.repository.Load(ctx, command.AggregateID())
-	if err != nil {
+func (h RenameStorageCommandHandler) Handle(ctx context.Context, command RenameStorageCommand) error {
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
+	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return err
 	}
-	school, ok := aggregate.(*storage.StorageAggregateRoot)
-	if !ok {
-		return IncorrectAggregateTypeError(aggregate)
-	}
-	err = school.RenameStorage(command.StorageID, command.Name, command.Reason)
-	if err != nil {
+	if err := aggregate.RenameStorage(command.StorageID, command.Name, command.Reason); err != nil {
 		return err
 	}
-	return h.repository.Save(ctx, aggregate)
+	return h.SaveAndPublish(ctx, aggregate)
 }
 
-type SetStorageLocation struct {
+type RelocateStorageCommand struct {
 	common.CommandModel
 	StorageID string `json:"storageId"`
 	Location  string `json:"location"`
 	Reason    string `json:"reason"`
 }
 
-type SetStorageLocationCommandHandler struct {
-	repository *common.Repository
+type RelocateStorageCommandHandler struct {
+	*common.CommandHandlerModel
 }
 
-func NewSetStorageLocationCommandHandler(repository *common.Repository) SetStorageLocationCommandHandler {
-	return SetStorageLocationCommandHandler{repository: repository}
+func NewRelocateStorageCommandHandler(store common.Store, publisher common.EventPublisher) RelocateStorageCommandHandler {
+	return RelocateStorageCommandHandler{common.NewCommandHandlerModel(store, publisher)}
 }
 
-func (h SetStorageLocationCommandHandler) Handle(ctx context.Context, command SetStorageLocation) error {
-	aggregate, err := h.repository.Load(ctx, command.AggregateID())
-	if err != nil {
+func (h RelocateStorageCommandHandler) Handle(ctx context.Context, command RelocateStorageCommand) error {
+	aggregate := storage.NewSchoolStorageAggregateWithID(command.AggregateID())
+	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return err
 	}
-	school, ok := aggregate.(*storage.StorageAggregateRoot)
-	if !ok {
-		return IncorrectAggregateTypeError(aggregate)
-	}
-	err = school.RelocateStorage(command.StorageID, command.Location, command.Reason)
-	if err != nil {
+	if err := aggregate.RelocateStorage(command.StorageID, command.Location, command.Reason); err != nil {
 		return err
 	}
-	return h.repository.Save(ctx, aggregate)
+	return h.SaveAndPublish(ctx, aggregate)
 }
