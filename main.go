@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// postgres.CreatePostgresStoreTables()
-	web.InMemoryConfig()
-	// web.PostgresMongoRabbitConfig()
+	//web.InMemoryConfig()
+	web.PostgresMongoRabbitConfig()
 	http.ListenAndServe(":9090", nil)
 }

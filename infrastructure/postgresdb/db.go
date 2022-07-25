@@ -14,7 +14,7 @@ var (
 	pgpassword = utils.GetenvOrFallback("PG_PASSWORD", "rootpwd")
 	pghost     = utils.GetenvOrFallback("PG_HOST", "localhost")
 	pgport     = utils.GetenvOrFallback("PG_PORT", "5432")
-	pgdbname   = utils.GetenvOrFallback("PG_NAME", "school_book_storage")
+	pgdbname   = utils.GetenvOrFallback("PG_DATABASE", "school_book_storage")
 	pgsslmode  = utils.GetenvOrFallback("PG_SSLMODE", "disable")
 )
 
