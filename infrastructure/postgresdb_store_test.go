@@ -1,4 +1,4 @@
-package postgres_test
+package infrastructure_test
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	domain "github.com/kammeph/school-book-storage-service/domain/common"
-	"github.com/kammeph/school-book-storage-service/infrastructure/postgres"
+	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/infrastructure"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,16 +22,16 @@ const (
 func TestNewPostgresStore(t *testing.T) {
 	db, _, err := sqlmock.New()
 	assert.Nil(t, err)
-	store := postgres.NewPostgressStore("test", db)
+	store := infrastructure.NewPostgressStore("test", db)
 	assert.NotNil(t, store)
-	pgStore, ok := store.(*postgres.PostgresStore)
+	pgStore, ok := store.(*infrastructure.PostgresStore)
 	assert.True(t, ok)
 	assert.NotNil(t, pgStore)
 }
 
 func TestLoad(t *testing.T) {
 	db, mock, _ := sqlmock.New()
-	store := postgres.NewPostgressStore("test", db)
+	store := infrastructure.NewPostgressStore("test", db)
 
 	aggregateID := "testSchool"
 	rows := sqlmock.
@@ -74,7 +74,7 @@ func TestSave(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			db, mock, _ := sqlmock.New()
-			store := postgres.NewPostgressStore("test", db)
+			store := infrastructure.NewPostgressStore("test", db)
 			rows := sqlmock.NewRows([]string{"version"}).AddRow(test.latestVersion)
 			mock.ExpectPrepare(maxVersionSql).ExpectQuery().WillReturnRows(rows)
 

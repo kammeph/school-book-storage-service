@@ -1,4 +1,4 @@
-package postgres
+package infrastructure
 
 var (
 	createSchoolsTable = "CREATE TABLE IF NOT EXISTS schools (" +
@@ -36,7 +36,7 @@ var (
 )
 
 func CreatePostgresStoreTables() {
-	db := NewDB()
+	db := NewPostgresDB()
 	defer db.Close()
 	_, err := db.Exec(createSchoolsTable)
 	if err != nil {

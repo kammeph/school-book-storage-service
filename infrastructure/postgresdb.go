@@ -1,4 +1,4 @@
-package postgres
+package infrastructure
 
 import (
 	"database/sql"
@@ -18,7 +18,7 @@ var (
 	pgsslmode  = utils.GetenvOrFallback("PG_SSLMODE", "disable")
 )
 
-func NewDB() *sql.DB {
+func NewPostgresDB() *sql.DB {
 	connStr := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
 		pguser, pgpassword, pghost, pgport, pgdbname, pgsslmode)

@@ -1,4 +1,4 @@
-package mongodb
+package infrastructure
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	user     = utils.GetenvOrFallback("PG_USER", "mongo")
-	password = utils.GetenvOrFallback("PG_PASSWORD", "mongo")
-	host     = utils.GetenvOrFallback("PG_HOST", "localhost")
-	port     = utils.GetenvOrFallback("PG_PORT", "27017")
+	user     = utils.GetenvOrFallback("MONGO_USER", "mongo")
+	password = utils.GetenvOrFallback("MONGO_PASSWORD", "mongo")
+	host     = utils.GetenvOrFallback("MONGO_HOST", "localhost")
+	port     = utils.GetenvOrFallback("MONGO_PORT", "27017")
 )
 
 type ClientWrapper struct {
@@ -63,7 +63,7 @@ func (c *CollectionWrapper) UpdateOne(ctx context.Context, filter interface{}, d
 	return c.Collection.UpdateOne(ctx, filter, document, opts...)
 }
 
-func NewDB() Client {
+func NewMongoDB() Client {
 	uri := fmt.Sprintf("mongodb://%s:%s@%s:%s", user, password, host, port)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
@@ -74,4 +74,39 @@ func NewDB() Client {
 	}
 	fmt.Println("Successfully connected and pinged to mongo db.")
 	return &ClientWrapper{client}
+}
+
+type Client interface {
+	Database(name string) Database
+	Disconnect(ctx context.Context) error
+}
+
+type Database interface {
+	Collection(name string) Collection
+}
+
+type Collection interface {
+	Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (Cursor, error)
+	FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) SingleResult
+	InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (InsertResult, error)
+	DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (DeleteResult, error)
+	UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (UpdateResult, error)
+}
+
+type Cursor interface {
+	All(ctx context.Context, result interface{}) error
+}
+
+type SingleResult interface {
+	Decode(v interface{}) error
+	Err() error
+}
+
+type InsertResult interface {
+}
+
+type DeleteResult interface {
+}
+
+type UpdateResult interface {
 }

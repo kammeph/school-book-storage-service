@@ -1,15 +1,15 @@
-package memory
+package infrastructure
 
 import (
 	"context"
 	"encoding/json"
 
-	"github.com/kammeph/school-book-storage-service/application/common"
-	domain "github.com/kammeph/school-book-storage-service/domain/common"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain"
 )
 
 type MemoryMessageBroker struct {
-	eventHandlers []common.EventHandler
+	eventHandlers []application.EventHandler
 }
 
 func NewMemoryMessageBroker() *MemoryMessageBroker {
@@ -29,7 +29,7 @@ func (m *MemoryMessageBroker) Publish(ctx context.Context, events []domain.Event
 	return nil
 }
 
-func (m *MemoryMessageBroker) Subscribe(exchange string, handler common.EventHandler) error {
+func (m *MemoryMessageBroker) Subscribe(exchange string, handler application.EventHandler) error {
 	m.eventHandlers = append(m.eventHandlers, handler)
 	return nil
 }

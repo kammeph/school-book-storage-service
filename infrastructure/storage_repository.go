@@ -1,19 +1,18 @@
-package storage
+package infrastructure
 
 import (
 	"context"
 
-	application "github.com/kammeph/school-book-storage-service/application/storage"
-	domain "github.com/kammeph/school-book-storage-service/domain/storage"
-	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type StorageWithBookRepository struct {
-	collection mongodb.Collection
+	collection Collection
 }
 
-func NewStorageWithBookRepository(db mongodb.Client, dbName, tableName string) application.StorageWithBooksRepository {
+func NewStorageWithBookRepository(db Client, dbName, tableName string) application.StorageWithBooksRepository {
 	collection := db.Database(dbName).Collection(tableName)
 	return &StorageWithBookRepository{collection}
 }

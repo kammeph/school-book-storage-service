@@ -1,9 +1,9 @@
-package rabbitmq_test
+package infrastructure_test
 
 import (
 	"testing"
 
-	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
+	"github.com/kammeph/school-book-storage-service/infrastructure"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +29,7 @@ func TestNewEventSubscriber(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := rabbitmq.NewRabbitEventSubscriber(test.connection)
+			_, err := infrastructure.NewRabbitEventSubscriber(test.connection)
 			if test.exspectError {
 				assert.Error(t, err)
 				assert.Equal(t, test.err, err)
@@ -74,7 +74,7 @@ func TestSubscribe(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			broker, err := rabbitmq.NewRabbitEventSubscriber(test.connection)
+			broker, err := infrastructure.NewRabbitEventSubscriber(test.connection)
 			assert.Nil(t, err)
 			assert.NotNil(t, broker)
 			broker.Subscribe("test", EntityEvenHandler{})

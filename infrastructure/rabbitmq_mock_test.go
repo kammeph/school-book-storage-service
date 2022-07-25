@@ -1,9 +1,9 @@
-package rabbitmq_test
+package infrastructure_test
 
 import (
 	"errors"
 
-	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
+	"github.com/kammeph/school-book-storage-service/infrastructure"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -60,7 +60,7 @@ func (c MockConntection) Close() error {
 	return nil
 }
 
-func (c MockConntection) Channel() (rabbitmq.AmqpChannel, error) {
+func (c MockConntection) Channel() (infrastructure.AmqpChannel, error) {
 	if c.channelError {
 		return nil, errChannel
 	}

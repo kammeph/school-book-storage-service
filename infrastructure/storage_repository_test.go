@@ -1,12 +1,12 @@
-package storage_test
+package infrastructure_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	domain "github.com/kammeph/school-book-storage-service/domain/storage"
-	"github.com/kammeph/school-book-storage-service/infrastructure/storage"
+	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/infrastructure"
 	"github.com/kammeph/school-book-storage-service/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -68,7 +68,7 @@ func TestGetAllStoragesBySchoolID(t *testing.T) {
 			collection.(*mocks.MockCollection).
 				On("Find", context.Background(), bson.D{{Key: "schoolId", Value: "cursor-error"}}).
 				Return(nil, nil)
-			repository := storage.NewStorageWithBookRepository(client, test.database, test.collection)
+			repository := infrastructure.NewStorageWithBookRepository(client, test.database, test.collection)
 			storages, err := repository.GetAllStoragesBySchoolID(context.Background(), test.schoolID)
 			if test.expectError {
 				assert.Error(t, err)
@@ -139,7 +139,7 @@ func TestGetStoragesByID(t *testing.T) {
 			collection.(*mocks.MockCollection).
 				On("FindOne", context.Background(), bson.D{{Key: "storageId", Value: "decode-error"}}).
 				Return(&mocks.MockSingleResult{Storage: nil})
-			repository := storage.NewStorageWithBookRepository(client, test.database, test.collection)
+			repository := infrastructure.NewStorageWithBookRepository(client, test.database, test.collection)
 			storage, err := repository.GetStorageByID(context.Background(), test.schoolID, test.storageID)
 			if test.expectError {
 				assert.Error(t, err)
@@ -210,7 +210,7 @@ func TestGetStoragesByName(t *testing.T) {
 			collection.(*mocks.MockCollection).
 				On("FindOne", context.Background(), bson.D{{Key: "name", Value: "decode-error"}}).
 				Return(&mocks.MockSingleResult{Storage: nil})
-			repository := storage.NewStorageWithBookRepository(client, test.database, test.collection)
+			repository := infrastructure.NewStorageWithBookRepository(client, test.database, test.collection)
 			storage, err := repository.GetStorageByName(context.Background(), test.schoolID, test.storageName)
 			if test.expectError {
 				assert.Error(t, err)
@@ -282,7 +282,7 @@ func TestInsertStorage(t *testing.T) {
 					{Key: "books", Value: []domain.BookInStorage{}},
 				}).
 				Return(nil, errors.New("mock-insert-error"))
-			repository := storage.NewStorageWithBookRepository(client, test.database, test.collection)
+			repository := infrastructure.NewStorageWithBookRepository(client, test.database, test.collection)
 			storage := domain.StorageWithBooks{
 				StorageID: test.storageID,
 				SchoolID:  test.schoolID,
@@ -338,7 +338,7 @@ func TestDeleteStorage(t *testing.T) {
 			collection.(*mocks.MockCollection).
 				On("DeleteOne", context.Background(), bson.D{{Key: "storageId", Value: "error"}}).
 				Return(nil, errors.New("mock-delete-error"))
-			repository := storage.NewStorageWithBookRepository(client, test.database, test.collection)
+			repository := infrastructure.NewStorageWithBookRepository(client, test.database, test.collection)
 			err := repository.DeleteStorage(context.Background(), test.storageID)
 			if test.expectError {
 				assert.Error(t, err)
@@ -394,7 +394,7 @@ func TestUpdateStorageName(t *testing.T) {
 					bson.D{{Key: "storageId", Value: "error"}},
 					bson.D{{Key: "$set", Value: bson.D{{Key: "name", Value: "error"}}}}).
 				Return(nil, errors.New("mock-update-error"))
-			repository := storage.NewStorageWithBookRepository(client, test.database, test.collection)
+			repository := infrastructure.NewStorageWithBookRepository(client, test.database, test.collection)
 			err := repository.UpdateStorageName(context.Background(), test.storageID, test.storageName)
 			if test.expectError {
 				assert.Error(t, err)

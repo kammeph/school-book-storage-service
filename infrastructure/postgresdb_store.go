@@ -1,4 +1,4 @@
-package postgres
+package infrastructure
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	application "github.com/kammeph/school-book-storage-service/application/common"
-	domain "github.com/kammeph/school-book-storage-service/domain/common"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain"
 )
 
 const (

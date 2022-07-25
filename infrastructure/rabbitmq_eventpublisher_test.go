@@ -1,4 +1,4 @@
-package rabbitmq_test
+package infrastructure_test
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	domain "github.com/kammeph/school-book-storage-service/domain/common"
-	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
+	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/infrastructure"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,7 +50,7 @@ func TestNewEventPublisher(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := rabbitmq.NewRabbitEventPublisher(test.connection, "test")
+			_, err := infrastructure.NewRabbitEventPublisher(test.connection, "test")
 			if test.exspectError {
 				assert.Error(t, err)
 				assert.Equal(t, test.err, err)
@@ -83,7 +83,7 @@ func TestPublish(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			broker, _ := rabbitmq.NewRabbitEventPublisher(test.connection, "test")
+			broker, _ := infrastructure.NewRabbitEventPublisher(test.connection, "test")
 			event := &EntityEvent{
 				EventModel: domain.EventModel{
 					ID:      uuid.NewString(),
