@@ -7,7 +7,7 @@ import (
 
 	"github.com/kammeph/school-book-storage-service/application/storage"
 	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
-	"github.com/kammeph/school-book-storage-service/infrastructure/mongo"
+	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/postgres"
 	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
 	infrastructure "github.com/kammeph/school-book-storage-service/infrastructure/storage"
@@ -44,7 +44,7 @@ func PostgresMongoRabbitConfig() {
 		}
 		fmt.Println("Connection to postgres db closed.")
 	}()
-	mongodb := mongo.NewDB()
+	mongodb := mongodb.NewDB()
 	defer func() {
 		if err := mongodb.Disconnect(context.TODO()); err != nil {
 			panic(err)
