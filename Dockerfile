@@ -24,10 +24,10 @@ RUN adduser -D nonroot
 
 WORKDIR /
 
-COPY --from=build ./school-book-storage-service ./school-book-storage-service
+COPY --from=build /app/school-book-storage-service /school-book-storage-service
 
 EXPOSE 9090
 
 USER nonroot
 
-ENTRYPOINT [ "./school-book-storage-service" ]
+ENTRYPOINT [ "/school-book-storage-service" ]
