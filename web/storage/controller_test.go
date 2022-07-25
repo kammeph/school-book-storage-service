@@ -104,7 +104,7 @@ func TestRemoveStorage(t *testing.T) {
 			name:       "remove storage failed",
 			body:       `{"aggregateId":"school","storageId":"unknown","reason":"test"}`,
 			statusCode: http.StatusBadRequest,
-			response:   fmt.Sprintln(domain.StorageIDNotFoundError("unknown").Error()),
+			response:   fmt.Sprintln(domain.ErrStorageIDNotFound("unknown").Error()),
 		},
 	}
 	for _, test := range tests {
@@ -138,7 +138,7 @@ func TestRenameStorage(t *testing.T) {
 			name:       "rename storage failed",
 			body:       `{"aggregateId":"school","storageId":"testUpdate","name":"Closet to Update","reason":"test"}`,
 			statusCode: http.StatusBadRequest,
-			response:   fmt.Sprintln(domain.StorageAlreadyExistsError("Closet to Update", "Room 12").Error()),
+			response:   fmt.Sprintln(domain.ErrStorageAlreadyExists("Closet to Update", "Room 12").Error()),
 		},
 	}
 	for _, test := range tests {
@@ -172,7 +172,7 @@ func TestRelocateStorage(t *testing.T) {
 			name:       "rename storage failed",
 			body:       `{"aggregateId":"school","storageId":"testUpdate","location":"Room 12","reason":"test"}`,
 			statusCode: http.StatusBadRequest,
-			response:   fmt.Sprintln(domain.StorageAlreadyExistsError("Closet to Update", "Room 12").Error()),
+			response:   fmt.Sprintln(domain.ErrStorageAlreadyExists("Closet to Update", "Room 12").Error()),
 		},
 	}
 	for _, test := range tests {

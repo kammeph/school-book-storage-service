@@ -1,11 +1,10 @@
-package storage_test
+package domain_test
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kammeph/school-book-storage-service/domain/common"
-	"github.com/kammeph/school-book-storage-service/domain/storage"
+	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,67 +22,63 @@ func TestEventCreation(t *testing.T) {
 			storageID:       uuid.NewString(),
 			storageName:     "storage",
 			storageLocation: "location",
-			eventType:       storage.StorageAdded,
+			eventType:       domain.StorageAdded,
 		},
 		{
 			name:            "storage removed",
 			storageID:       uuid.NewString(),
 			storageName:     "storage",
 			storageLocation: "location",
-			eventType:       storage.StorageRemoved,
+			eventType:       domain.StorageRemoved,
 		},
 		{
 			name:        "storage renamed",
 			storageID:   uuid.NewString(),
 			storageName: "storage",
 			reason:      "test",
-			eventType:   storage.StorageRenamed,
+			eventType:   domain.StorageRenamed,
 		},
 		{
 			name:            "storage relocated",
 			storageID:       uuid.NewString(),
 			storageLocation: "location",
 			reason:          "test",
-			eventType:       storage.StorageRelocated,
+			eventType:       domain.StorageRelocated,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aggregate := storage.NewSchoolStorageAggregate()
-			var event common.Event
+			aggregate := domain.NewSchoolStorageAggregate()
+			var event domain.Event
 			var err error
 			switch test.eventType {
-			case storage.StorageAdded:
-				event, err = storage.NewStorageAdded(
+			case domain.StorageAdded:
+				event, err = domain.NewStorageAdded(
 					aggregate,
 					test.storageID,
 					test.storageName,
 					test.storageLocation,
 				)
-				break
-			case storage.StorageRemoved:
-				event, err = storage.NewStorageRemoved(
+			case domain.StorageRemoved:
+				event, err = domain.NewStorageRemoved(
 					aggregate,
 					test.storageID,
 					test.reason,
 				)
-				break
-			case storage.StorageRenamed:
-				event, err = storage.NewStorageRenamed(
+			case domain.StorageRenamed:
+				event, err = domain.NewStorageRenamed(
 					aggregate,
 					test.storageID,
 					test.storageName,
 					test.reason,
 				)
-				break
-			case storage.StorageRelocated:
-				event, err = storage.NewStorageRelocated(
+			case domain.StorageRelocated:
+				event, err = domain.NewStorageRelocated(
 					aggregate,
 					test.storageID,
 					test.storageLocation,
 					test.reason,
 				)
-				break
 			default:
 				return
 			}

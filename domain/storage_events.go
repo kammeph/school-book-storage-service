@@ -1,8 +1,4 @@
-package storage
-
-import (
-	"github.com/kammeph/school-book-storage-service/domain/common"
-)
+package domain
 
 var (
 	StorageAdded     = "STORAGE_ADDED"
@@ -18,14 +14,14 @@ type StorageAddedEvent struct {
 	Location  string `json:"location"`
 }
 
-func NewStorageAdded(aggregate *SchoolStorageAggregate, storageID, name, location string) (common.Event, error) {
+func NewStorageAdded(aggregate *SchoolStorageAggregate, storageID, name, location string) (Event, error) {
 	eventData := StorageAddedEvent{
 		SchoolID:  aggregate.AggregateID(),
 		StorageID: storageID,
 		Name:      name,
 		Location:  location,
 	}
-	event := common.NewEvent(aggregate, StorageAdded)
+	event := NewEvent(aggregate, StorageAdded)
 	if err := event.SetJsonData(eventData); err != nil {
 		return nil, err
 	}
@@ -37,12 +33,12 @@ type StorageRemovedEvent struct {
 	Reason    string `json:"reason"`
 }
 
-func NewStorageRemoved(aggregate *SchoolStorageAggregate, storageID string, reason string) (common.Event, error) {
+func NewStorageRemoved(aggregate *SchoolStorageAggregate, storageID string, reason string) (Event, error) {
 	eventData := StorageRemovedEvent{
 		StorageID: storageID,
 		Reason:    reason,
 	}
-	event := common.NewEvent(aggregate, StorageRemoved)
+	event := NewEvent(aggregate, StorageRemoved)
 	if err := event.SetJsonData(eventData); err != nil {
 		return nil, err
 	}
@@ -55,13 +51,13 @@ type StorageRenamedEvent struct {
 	Reason    string `json:"reason"`
 }
 
-func NewStorageRenamed(aggregate *SchoolStorageAggregate, storageID string, name, reason string) (common.Event, error) {
+func NewStorageRenamed(aggregate *SchoolStorageAggregate, storageID string, name, reason string) (Event, error) {
 	eventData := StorageRenamedEvent{
 		StorageID: storageID,
 		Name:      name,
 		Reason:    reason,
 	}
-	event := common.NewEvent(aggregate, StorageRenamed)
+	event := NewEvent(aggregate, StorageRenamed)
 	if err := event.SetJsonData(eventData); err != nil {
 		return nil, err
 	}
@@ -74,13 +70,13 @@ type StorageRelocatedEvent struct {
 	Reason    string `json:"reason"`
 }
 
-func NewStorageRelocated(aggregate *SchoolStorageAggregate, storageID string, location, reason string) (common.Event, error) {
+func NewStorageRelocated(aggregate *SchoolStorageAggregate, storageID string, location, reason string) (Event, error) {
 	eventData := StorageRelocatedEvent{
 		StorageID: storageID,
 		Location:  location,
 		Reason:    reason,
 	}
-	event := common.NewEvent(aggregate, StorageRelocated)
+	event := NewEvent(aggregate, StorageRelocated)
 	if err := event.SetJsonData(eventData); err != nil {
 		return nil, err
 	}
