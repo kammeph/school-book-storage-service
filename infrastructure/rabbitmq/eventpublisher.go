@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/kammeph/school-book-storage-service/application/common"
-	domain "github.com/kammeph/school-book-storage-service/domain/common"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -14,7 +14,7 @@ type RabbitEventPublisher struct {
 	exchange string
 }
 
-func NewRabbitEventPublisher(connection AmqpConnection, exchange string) (common.EventPublisher, error) {
+func NewRabbitEventPublisher(connection AmqpConnection, exchange string) (application.EventPublisher, error) {
 	channel, err := connection.Channel()
 	if err != nil {
 		return nil, err

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/kammeph/school-book-storage-service/domain/storage"
+	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -50,7 +50,7 @@ func (c *MockCollection) Find(ctx context.Context, filter interface{}, opts ...*
 
 	var data []byte
 	if ret.Get(0) != nil {
-		storages := ret.Get(0).([]storage.StorageWithBooks)
+		storages := ret.Get(0).([]domain.StorageWithBooks)
 		data, _ = json.Marshal(storages)
 	} else {
 		data = nil
@@ -125,7 +125,7 @@ func (c *MockCursor) All(ctx context.Context, result interface{}) error {
 }
 
 type MockSingleResult struct {
-	Storage *storage.StorageWithBooks
+	Storage *domain.StorageWithBooks
 	Error   error
 }
 

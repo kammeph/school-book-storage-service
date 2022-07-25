@@ -3,15 +3,15 @@ package rabbitmq
 import (
 	"context"
 
-	"github.com/kammeph/school-book-storage-service/application/common"
+	"github.com/kammeph/school-book-storage-service/application"
 )
 
 type Subscription struct {
 	channel AmqpChannel
-	handler common.EventHandler
+	handler application.EventHandler
 }
 
-func NewSubscription(channel AmqpChannel, handler common.EventHandler) *Subscription {
+func NewSubscription(channel AmqpChannel, handler application.EventHandler) *Subscription {
 	return &Subscription{channel, handler}
 }
 
@@ -43,7 +43,7 @@ type RabbitEventSubscriber struct {
 	subscriptions []*Subscription
 }
 
-func NewRabbitEventSubscriber(connection AmqpConnection) (common.EventSubscriber, error) {
+func NewRabbitEventSubscriber(connection AmqpConnection) (application.EventSubscriber, error) {
 	channel, err := connection.Channel()
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func NewRabbitEventSubscriber(connection AmqpConnection) (common.EventSubscriber
 	return &RabbitEventSubscriber{channel, []*Subscription{}}, nil
 }
 
-func (s *RabbitEventSubscriber) Subscribe(exchange string, handler common.EventHandler) error {
+func (s *RabbitEventSubscriber) Subscribe(exchange string, handler application.EventHandler) error {
 	subscription := NewSubscription(s.channel, handler)
 	if err := subscription.Consume(exchange); err != nil {
 		return err

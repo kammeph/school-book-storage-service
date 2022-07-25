@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	domain "github.com/kammeph/school-book-storage-service/domain/common"
+	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
 	"github.com/stretchr/testify/assert"
 )

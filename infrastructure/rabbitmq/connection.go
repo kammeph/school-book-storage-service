@@ -7,22 +7,15 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-const (
-	rabbitUser     = "DB_USER"
-	rabbitPassword = "DB_PASSWORD"
-	rabbitHost     = "DB_HOST"
-	rabbitPort     = "DB_PORT"
-)
-
 var (
-	user     = utils.GetenvOrFallback(rabbitUser, "guest")
-	password = utils.GetenvOrFallback(rabbitPassword, "guest")
-	host     = utils.GetenvOrFallback(rabbitHost, "localhost")
-	port     = utils.GetenvOrFallback(rabbitPort, "5672")
+	rabbituser     = utils.GetenvOrFallback("RABBIT_USER", "guest")
+	rabbitpassword = utils.GetenvOrFallback("RABBIT_PASSWORD", "guest")
+	rabbithost     = utils.GetenvOrFallback("RABBIT_HOST", "localhost")
+	rabbitport     = utils.GetenvOrFallback("RABBIT_PORT", "5672")
 )
 
 func NewRabbitMQConnection() AmqpConnection {
-	url := fmt.Sprintf("amqp://%s:%s@%s:%s/", user, password, host, port)
+	url := fmt.Sprintf("amqp://%s:%s@%s:%s/", rabbituser, rabbitpassword, rabbithost, rabbitport)
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		panic(err)
