@@ -1,0 +1,41 @@
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+	CREATE TABLE IF NOT EXISTS schools (
+		id VARCHAR(100) NOT NULL,
+		aggregate_id VARCHAR(100) NOT NULL,
+		type VARCHAR(100) NOT NULL,
+		version INTEGER NOT NULL,
+		timestamp TIMESTAMP NOT NULL,
+		data VARCHAR(255) NOT NULL,
+		PRIMARY KEY (id)
+	);
+	CREATE TABLE IF NOT EXISTS storages (
+		id VARCHAR(100) NOT NULL,
+		aggregate_id VARCHAR(100) NOT NULL,
+		type VARCHAR(100) NOT NULL,
+		version INTEGER NOT NULL,
+		timestamp TIMESTAMP NOT NULL,
+		data VARCHAR(255) NOT NULL,
+		PRIMARY KEY (id)
+	);
+	CREATE TABLE IF NOT EXISTS school_classes (
+		id VARCHAR(100) NOT NULL,
+		aggregate_id VARCHAR(100) NOT NULL,
+		type VARCHAR(100) NOT NULL,
+		version INTEGER NOT NULL,
+		timestamp TIMESTAMP NOT NULL,
+		data VARCHAR(255) NOT NULL,
+		PRIMARY KEY (id)
+	);
+	CREATE TABLE IF NOT EXISTS books (
+		id VARCHAR(100) NOT NULL,
+		aggregate_id VARCHAR(100) NOT NULL,
+		type VARCHAR(100) NOT NULL,
+		version INTEGER NOT NULL,
+		timestamp TIMESTAMP NOT NULL,
+		data VARCHAR(255) NOT NULL,
+		PRIMARY KEY (id)
+	);
+EOSQL

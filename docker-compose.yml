@@ -1,0 +1,91 @@
+version: '3.9'
+
+services:
+
+  eventstore:
+    image: postgres:${PG_VERSION}
+    container_name: postgres
+    hostname: postgres
+    restart: always
+    ports: 
+      - ${PG_PORT}:5432
+    networks:
+      - backend-network
+    volumes:
+      - postgresdb_vol:/var/lib/postgresql/data
+      - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+    environment:
+      POSTGRES_DB: ${PG_DATABASE}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    
+  readdatabase:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo
+    hostname: mongo
+    restart: always
+    ports:
+      - ${MONGO_PORT}:27017
+    networks:
+      - backend-network
+    volumes:
+      - mongodb_vol:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:${MONGO_PORT}/
+
+  messagebroker:
+    image: rabbitmq:${RABBIT_VERSION}
+    container_name: rabbit
+    hostname: rabbit
+    restart: always
+    ports:
+      - ${RABBIT_PORT}:5672
+      - 15672:15672
+    networks:
+      - backend-network
+
+  app:
+    image: kammeph/school-book-storage-service:latest
+    container_name: school-book-storage-service
+    hostname: school-book-storage-service
+    restart: always
+    ports:
+      - ${SERVER_PORT}:9090
+    networks:
+      - backend-network
+    environment:
+      - PG_DRIVER=${PG_DRIVER}
+      - PG_USER=${PG_USER}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_HOST=postgres
+      - PG_PORT=${PG_PORT}
+      - PG_DATABASE=${PG_DATABASE}
+      - PG_SSLMODE=${PG_SSLMODE}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOST=mongo
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+      - RABBIT_USER=${RABBIT_USER}
+      - RABBIT_PASSWORD=${RABBIT_PASSWORD}
+      - RABBIT_HOST=rabbit
+      - RABBIT_PORT=${RABBIT_PORT}
+
+  volumes:
+    postgresdb_vol:
+    mongodb_vol:
+   
+  networks:
+    backend-network:
