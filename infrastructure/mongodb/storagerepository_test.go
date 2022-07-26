@@ -7,7 +7,7 @@ import (
 
 	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
-	"github.com/kammeph/school-book-storage-service/mocks"
+	"github.com/kammeph/school-book-storage-service/testing/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 )

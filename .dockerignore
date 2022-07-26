@@ -1,0 +1,24 @@
+# Unit Testing
+*_test.go
+testing
+coverage
+
+# GitHub
+.github
+.gitignore
+
+# Builds
+*/bin
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Docs
+*.md
+
+# Scripts
+coverage.sh
+init-database.sh
+run.sh
