@@ -1,7 +1,8 @@
-package domain
+package schooldomain
 
 import (
 	"github.com/google/uuid"
+	"github.com/kammeph/school-book-storage-service/domain"
 )
 
 func (a *SchoolAggregate) AddSchool(name string) (string, error) {
@@ -30,7 +31,7 @@ func (a *SchoolAggregate) DeactivateSchool(schoolID string, reason string) error
 		return err
 	}
 	if reason == "" {
-		return ErrReasonNotSpecified
+		return domain.ErrReasonNotSpecified
 	}
 	event, err := NewSchoolDeactivated(a, schoolID, reason)
 	if err != nil {
@@ -47,7 +48,7 @@ func (a *SchoolAggregate) RenameSchool(schoolID string, name string, reason stri
 		return ErrSchoolNameNotSet
 	}
 	if reason == "" {
-		return ErrReasonNotSpecified
+		return domain.ErrReasonNotSpecified
 	}
 	schoolsWithName := a.getSchoolsByName(name)
 	if len(schoolsWithName) > 0 {

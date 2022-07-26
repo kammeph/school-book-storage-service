@@ -1,7 +1,9 @@
-package domain
+package schooldomain
+
+import "github.com/kammeph/school-book-storage-service/domain"
 
 type SchoolAggregate struct {
-	*AggregateModel
+	*domain.AggregateModel
 	Schools []School
 }
 
@@ -9,12 +11,12 @@ func NewSchoolAggregate() *SchoolAggregate {
 	aggregate := &SchoolAggregate{
 		Schools: []School{},
 	}
-	model := NewAggregateModel(aggregate.On)
+	model := domain.NewAggregateModel(aggregate.On)
 	aggregate.AggregateModel = &model
 	return aggregate
 }
 
-func (a *SchoolAggregate) On(event Event) error {
+func (a *SchoolAggregate) On(event domain.Event) error {
 	switch event.EventType() {
 	case SchoolAdded:
 		return a.onSchoolAdded(event)
@@ -23,11 +25,11 @@ func (a *SchoolAggregate) On(event Event) error {
 	case SchoolRenamed:
 		return a.onSchoolRenamed(event)
 	default:
-		return ErrUnknownEvent(event)
+		return domain.ErrUnknownEvent(event)
 	}
 }
 
-func (a *SchoolAggregate) onSchoolAdded(event Event) error {
+func (a *SchoolAggregate) onSchoolAdded(event domain.Event) error {
 	eventData := SchoolAddedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -42,7 +44,7 @@ func (a *SchoolAggregate) onSchoolAdded(event Event) error {
 	return nil
 }
 
-func (a *SchoolAggregate) onSchoolDeactivated(event Event) error {
+func (a *SchoolAggregate) onSchoolDeactivated(event domain.Event) error {
 	eventData := SchoolDeactivatedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -57,7 +59,7 @@ func (a *SchoolAggregate) onSchoolDeactivated(event Event) error {
 	return nil
 }
 
-func (a *SchoolAggregate) onSchoolRenamed(event Event) error {
+func (a *SchoolAggregate) onSchoolRenamed(event domain.Event) error {
 	eventData := SchoolRenamedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err

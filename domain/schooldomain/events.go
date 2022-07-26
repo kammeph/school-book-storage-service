@@ -1,4 +1,6 @@
-package domain
+package schooldomain
+
+import "github.com/kammeph/school-book-storage-service/domain"
 
 var (
 	SchoolAdded       = "SCHOOL_ADDED"
@@ -11,12 +13,12 @@ type SchoolAddedEvent struct {
 	Name     string `json:"name"`
 }
 
-func NewSchoolAdded(aggregate *SchoolAggregate, schoolID, name string) (Event, error) {
+func NewSchoolAdded(aggregate *SchoolAggregate, schoolID, name string) (domain.Event, error) {
 	eventData := SchoolAddedEvent{
 		SchoolID: schoolID,
 		Name:     name,
 	}
-	event := NewEvent(aggregate, SchoolAdded)
+	event := domain.NewEvent(aggregate, SchoolAdded)
 	if err := event.SetJsonData(eventData); err != nil {
 		return nil, err
 	}
@@ -28,12 +30,12 @@ type SchoolDeactivatedEvent struct {
 	Reason   string `json:"reason"`
 }
 
-func NewSchoolDeactivated(aggregate *SchoolAggregate, schoolID, reason string) (Event, error) {
+func NewSchoolDeactivated(aggregate *SchoolAggregate, schoolID, reason string) (domain.Event, error) {
 	eventData := SchoolDeactivatedEvent{
 		SchoolID: schoolID,
 		Reason:   reason,
 	}
-	event := NewEvent(aggregate, SchoolDeactivated)
+	event := domain.NewEvent(aggregate, SchoolDeactivated)
 	if err := event.SetJsonData(eventData); err != nil {
 		return nil, err
 	}
@@ -46,13 +48,13 @@ type SchoolRenamedEvent struct {
 	Reason   string `json:"reason"`
 }
 
-func NewSchoolRenamed(aggregate *SchoolAggregate, schoolID, name, reason string) (Event, error) {
+func NewSchoolRenamed(aggregate *SchoolAggregate, schoolID, name, reason string) (domain.Event, error) {
 	eventData := SchoolRenamedEvent{
 		SchoolID: schoolID,
 		Name:     name,
 		Reason:   reason,
 	}
-	event := NewEvent(aggregate, SchoolRenamed)
+	event := domain.NewEvent(aggregate, SchoolRenamed)
 	if err := event.SetJsonData(eventData); err != nil {
 		return nil, err
 	}

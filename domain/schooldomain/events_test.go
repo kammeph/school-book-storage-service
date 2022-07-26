@@ -1,9 +1,10 @@
-package domain_test
+package schooldomain_test
 
 import (
 	"testing"
 
 	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/domain/schooldomain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,42 +20,42 @@ func TestSchoolEventCreation(t *testing.T) {
 			name:       "school added",
 			schoolID:   "school",
 			schoolName: "High School",
-			eventType:  domain.SchoolAdded,
+			eventType:  schooldomain.SchoolAdded,
 		},
 		{
 			name:      "storage deactivated",
 			schoolID:  "school",
 			reason:    "test",
-			eventType: domain.SchoolDeactivated,
+			eventType: schooldomain.SchoolDeactivated,
 		},
 		{
 			name:       "school renamed",
 			schoolID:   "school",
 			schoolName: "High School",
 			reason:     "test",
-			eventType:  domain.SchoolRenamed,
+			eventType:  schooldomain.SchoolRenamed,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aggregate := domain.NewSchoolAggregate()
+			aggregate := schooldomain.NewSchoolAggregate()
 			var event domain.Event
 			var err error
 			switch test.eventType {
-			case domain.SchoolAdded:
-				event, err = domain.NewSchoolAdded(
+			case schooldomain.SchoolAdded:
+				event, err = schooldomain.NewSchoolAdded(
 					aggregate,
 					test.schoolID,
 					test.schoolName,
 				)
-			case domain.SchoolDeactivated:
-				event, err = domain.NewSchoolDeactivated(
+			case schooldomain.SchoolDeactivated:
+				event, err = schooldomain.NewSchoolDeactivated(
 					aggregate,
 					test.schoolID,
 					test.reason,
 				)
-			case domain.SchoolRenamed:
-				event, err = domain.NewSchoolRenamed(
+			case schooldomain.SchoolRenamed:
+				event, err = schooldomain.NewSchoolRenamed(
 					aggregate,
 					test.schoolID,
 					test.schoolName,

@@ -1,14 +1,15 @@
-package domain_test
+package schooldomain_test
 
 import (
 	"testing"
 
 	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/domain/schooldomain"
 	"github.com/stretchr/testify/assert"
 )
 
-func initSchoolAggregate(schools []domain.School) *domain.SchoolAggregate {
-	aggregate := domain.NewSchoolAggregate()
+func initSchoolAggregate(schools []schooldomain.School) *schooldomain.SchoolAggregate {
+	aggregate := schooldomain.NewSchoolAggregate()
 	aggregate.Schools = schools
 	return aggregate
 }
@@ -16,33 +17,33 @@ func initSchoolAggregate(schools []domain.School) *domain.SchoolAggregate {
 func TestAddSchool(t *testing.T) {
 	tests := []struct {
 		name        string
-		schools     []domain.School
+		schools     []schooldomain.School
 		schoolname  string
 		err         error
 		expectError bool
 	}{
 		{
 			name:        "add school",
-			schools:     []domain.School{},
+			schools:     []schooldomain.School{},
 			schoolname:  "High School",
 			err:         nil,
 			expectError: false,
 		},
 		{
 			name:        "add school without name",
-			schools:     []domain.School{},
+			schools:     []schooldomain.School{},
 			schoolname:  "",
-			err:         domain.ErrSchoolNameNotSet,
+			err:         schooldomain.ErrSchoolNameNotSet,
 			expectError: true,
 		},
 		{
 			name: "school already exists",
-			schools: []domain.School{{
+			schools: []schooldomain.School{{
 				ID:   "school",
 				Name: "High School",
 			}},
 			schoolname:  "High School",
-			err:         domain.ErrSchoolAlreadyExists("High School"),
+			err:         schooldomain.ErrSchoolAlreadyExists("High School"),
 			expectError: true,
 		},
 	}
@@ -59,7 +60,7 @@ func TestAddSchool(t *testing.T) {
 			assert.Len(t, aggregate.DomainEvents(), 1)
 			assert.NotEqual(t, "", schoolID)
 			event := aggregate.DomainEvents()[0]
-			assert.Equal(t, domain.SchoolAdded, event.EventType())
+			assert.Equal(t, schooldomain.SchoolAdded, event.EventType())
 		})
 	}
 }
@@ -67,14 +68,14 @@ func TestAddSchool(t *testing.T) {
 func TestDeactivateSchool(t *testing.T) {
 	tests := []struct {
 		name        string
-		schools     []domain.School
+		schools     []schooldomain.School
 		reason      string
 		err         error
 		expectError bool
 	}{
 		{
 			name: "deactivate school",
-			schools: []domain.School{{
+			schools: []schooldomain.School{{
 				ID:     "school",
 				Name:   "High School",
 				Active: true,
@@ -85,14 +86,14 @@ func TestDeactivateSchool(t *testing.T) {
 		},
 		{
 			name:        "error when deactivating not existing school",
-			schools:     []domain.School{},
+			schools:     []schooldomain.School{},
 			reason:      "test",
-			err:         domain.ErrSchoolWithIDNotFound("school"),
+			err:         schooldomain.ErrSchoolWithIDNotFound("school"),
 			expectError: true,
 		},
 		{
 			name: "error when deactivating without a reason",
-			schools: []domain.School{{
+			schools: []schooldomain.School{{
 				ID:     "school",
 				Name:   "High School",
 				Active: true,
@@ -115,7 +116,7 @@ func TestDeactivateSchool(t *testing.T) {
 			assert.Len(t, aggregate.DomainEvents(), 1)
 			assert.Len(t, aggregate.Schools, 1)
 			event := aggregate.DomainEvents()[0]
-			assert.Equal(t, domain.SchoolDeactivated, event.EventType())
+			assert.Equal(t, schooldomain.SchoolDeactivated, event.EventType())
 		})
 	}
 }
@@ -123,7 +124,7 @@ func TestDeactivateSchool(t *testing.T) {
 func TestRenameSchool(t *testing.T) {
 	tests := []struct {
 		name        string
-		schools     []domain.School
+		schools     []schooldomain.School
 		schoolName  string
 		reason      string
 		err         error
@@ -131,7 +132,7 @@ func TestRenameSchool(t *testing.T) {
 	}{
 		{
 			name: "rename school",
-			schools: []domain.School{{
+			schools: []schooldomain.School{{
 				ID:   "school",
 				Name: "High School",
 			}},
@@ -142,29 +143,29 @@ func TestRenameSchool(t *testing.T) {
 		},
 		{
 			name: "storage with same name exists",
-			schools: []domain.School{{
+			schools: []schooldomain.School{{
 				ID:   "school",
 				Name: "High School",
 			}},
 			schoolName:  "High School",
 			reason:      "test",
-			err:         domain.ErrSchoolAlreadyExists("High School"),
+			err:         schooldomain.ErrSchoolAlreadyExists("High School"),
 			expectError: true,
 		},
 		{
 			name: "school name not set",
-			schools: []domain.School{{
+			schools: []schooldomain.School{{
 				ID:   "school",
 				Name: "storage",
 			}},
 			schoolName:  "",
 			reason:      "test",
-			err:         domain.ErrSchoolNameNotSet,
+			err:         schooldomain.ErrSchoolNameNotSet,
 			expectError: true,
 		},
 		{
 			name: "reason not specified",
-			schools: []domain.School{{
+			schools: []schooldomain.School{{
 				ID:   "school",
 				Name: "High School",
 			}},
@@ -186,7 +187,7 @@ func TestRenameSchool(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Len(t, aggregate.DomainEvents(), 1)
 			event := aggregate.DomainEvents()[0]
-			assert.Equal(t, domain.SchoolRenamed, event.EventType())
+			assert.Equal(t, schooldomain.SchoolRenamed, event.EventType())
 		})
 	}
 }
