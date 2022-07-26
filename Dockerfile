@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ./school-book-storage-service
+RUN /build.sh
 
 ##
 ## Deploy
@@ -24,7 +24,7 @@ RUN adduser -D nonroot
 
 WORKDIR /
 
-COPY --from=build /app/school-book-storage-service /school-book-storage-service
+COPY --from=build /app/web/bin/school-book-storage-service /school-book-storage-service
 
 EXPOSE 9090
 
