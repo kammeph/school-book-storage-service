@@ -405,3 +405,59 @@ func TestUpdateStorageName(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateStorageLocation(t *testing.T) {
+	tests := []struct {
+		name        string
+		database    string
+		collection  string
+		storageID   string
+		storageName string
+		expectError bool
+		err         error
+	}{
+		{
+			name:        "update storage name",
+			database:    "testdb",
+			collection:  "testcollection",
+			storageID:   "storage1",
+			storageName: "relocated",
+			expectError: false,
+			err:         nil,
+		},
+		{
+			name:        "update storage name error",
+			database:    "testdb",
+			collection:  "testcollection",
+			storageID:   "error",
+			storageName: "error",
+			expectError: true,
+			err:         errors.New("mock-update-error"),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			client := mocks.NewMockClient()
+			database := client.Database(test.database)
+			collection := database.Collection(test.collection)
+			collection.(*mocks.MockCollection).
+				On("UpdateOne", context.Background(),
+					bson.D{{Key: "storageId", Value: "storage1"}},
+					bson.D{{Key: "$set", Value: bson.D{{Key: "location", Value: "relocated"}}}}).
+				Return(nil, nil)
+			collection.(*mocks.MockCollection).
+				On("UpdateOne", context.Background(),
+					bson.D{{Key: "storageId", Value: "error"}},
+					bson.D{{Key: "$set", Value: bson.D{{Key: "location", Value: "error"}}}}).
+				Return(nil, errors.New("mock-update-error"))
+			repository := mongodb.NewStorageWithBookRepository(client, test.database, test.collection)
+			err := repository.UpdateStorageLocation(context.Background(), test.storageID, test.storageName)
+			if test.expectError {
+				assert.Error(t, err)
+				assert.Equal(t, test.err, err)
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}
