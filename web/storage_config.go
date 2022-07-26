@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/application/storageapp"
 	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/postgresdb"
@@ -17,12 +17,12 @@ func InMemoryConfig() {
 	store := memory.NewMemoryStore()
 	repository := memory.NewMemoryRepository()
 
-	eventHandler := application.NewStorageEventHandler(repository)
+	eventHandler := storageapp.NewStorageEventHandler(repository)
 	broker.Subscribe("storage", eventHandler)
-	broker.Subscribe("storage", &application.TestHandler{})
+	broker.Subscribe("storage", &storageapp.TestHandler{})
 
-	commandHandlers := application.NewStorageCommandHandlers(store, broker)
-	queryHandlers := application.NewStorageQueryHandlers(repository)
+	commandHandlers := storageapp.NewStorageCommandHandlers(store, broker)
+	queryHandlers := storageapp.NewStorageQueryHandlers(repository)
 
 	controller := NewStorageController(commandHandlers, queryHandlers)
 	configureEndpoints(controller)
@@ -61,12 +61,12 @@ func PostgresMongoRabbitConfig() {
 	store := postgresdb.NewPostgresStore("storages", db)
 	repository := mongodb.NewStorageWithBookRepository(client, "school_book_storage", "storages")
 
-	eventHandler := application.NewStorageEventHandler(repository)
+	eventHandler := storageapp.NewStorageEventHandler(repository)
 	subscriber.Subscribe("storage", eventHandler)
-	subscriber.Subscribe("storage", &application.TestHandler{})
+	subscriber.Subscribe("storage", &storageapp.TestHandler{})
 
-	commandHandlers := application.NewStorageCommandHandlers(store, publisher)
-	queryHandlers := application.NewStorageQueryHandlers(repository)
+	commandHandlers := storageapp.NewStorageCommandHandlers(store, publisher)
+	queryHandlers := storageapp.NewStorageQueryHandlers(repository)
 
 	controller := NewStorageController(commandHandlers, queryHandlers)
 	configureEndpoints(controller)

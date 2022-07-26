@@ -6,20 +6,20 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/application/storageapp"
 )
 
 type StorageController struct {
-	commmandHandlers application.StorageCommandHandlers
-	queryHandlers    application.StorageQueryHandlers
+	commmandHandlers storageapp.StorageCommandHandlers
+	queryHandlers    storageapp.StorageQueryHandlers
 }
 
-func NewStorageController(commandHandlers application.StorageCommandHandlers, queryHandlers application.StorageQueryHandlers) *StorageController {
+func NewStorageController(commandHandlers storageapp.StorageCommandHandlers, queryHandlers storageapp.StorageQueryHandlers) *StorageController {
 	return &StorageController{commandHandlers, queryHandlers}
 }
 
 func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
-	var command application.AddStorageCommand
+	var command storageapp.AddStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -32,7 +32,7 @@ func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request) {
-	var command application.RemoveStorageCommand
+	var command storageapp.RemoveStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -44,7 +44,7 @@ func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request)
 }
 
 func (c StorageController) RenameStorage(w http.ResponseWriter, r *http.Request) {
-	var command application.RenameStorageCommand
+	var command storageapp.RenameStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -56,7 +56,7 @@ func (c StorageController) RenameStorage(w http.ResponseWriter, r *http.Request)
 }
 
 func (c StorageController) RelocateStorage(w http.ResponseWriter, r *http.Request) {
-	var command application.RelocateStorageCommand
+	var command storageapp.RelocateStorageCommand
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
@@ -72,7 +72,7 @@ func (c StorageController) GetAllStorages(w http.ResponseWriter, r *http.Request
 	defer ctx.Done()
 	path := strings.Split(r.URL.Path, "/")
 	aggregateID := path[len(path)-1]
-	query := application.NewGetAllStorages(aggregateID)
+	query := storageapp.NewGetAllStorages(aggregateID)
 	storages, err := c.queryHandlers.GetAllHandler.Handle(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -87,7 +87,7 @@ func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request
 	path := strings.Split(r.URL.Path, "/")
 	aggregateID := path[len(path)-2]
 	storageID := path[len(path)-1]
-	query := application.NewGetStorageByID(aggregateID, storageID)
+	query := storageapp.NewGetStorageByID(aggregateID, storageID)
 	storage, err := c.queryHandlers.GetStorageByIDHandler.Handle(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -102,7 +102,7 @@ func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Reque
 	path := strings.Split(r.URL.Path, "/")
 	aggregateID := path[len(path)-2]
 	name := path[len(path)-1]
-	query := application.NewGetStorageByName(aggregateID, name)
+	query := storageapp.NewGetStorageByName(aggregateID, name)
 	storage, err := c.queryHandlers.GetStorageByNameHandler.Handle(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
