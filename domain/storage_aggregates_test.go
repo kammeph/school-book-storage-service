@@ -50,7 +50,7 @@ func TestOn(t *testing.T) {
 			reason:            "test",
 			eventType:         domain.StorageAdded,
 			err:               domain.ErrStoragesWithIdAlreadyExists(storageID),
-			expectError:       false,
+			expectError:       true,
 			addDefaultStorage: true,
 		},
 		{
