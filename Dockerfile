@@ -13,6 +13,8 @@ RUN go mod download
 
 COPY . .
 
+RUN chmod +x build.sh
+
 RUN ./build.sh
 
 ##
