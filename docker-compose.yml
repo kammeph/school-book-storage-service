@@ -57,7 +57,7 @@ services:
       - backend-network
 
   app:
-    image: kammeph/school-book-storage-service:latest
+    image: kammeph/school-book-storage-service:${APP_VERSION}
     container_name: school-book-storage-service
     hostname: school-book-storage-service
     restart: always
@@ -82,6 +82,10 @@ services:
       - RABBIT_PASSWORD=${RABBIT_PASSWORD}
       - RABBIT_HOST=rabbit
       - RABBIT_PORT=${RABBIT_PORT}
+    depends_on:
+      - eventstore
+      - readdatabase
+      - messagebroker
 
   volumes:
     postgresdb_vol:
