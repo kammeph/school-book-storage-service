@@ -1,9 +1,10 @@
-package application
+package storageapp
 
 import (
 	"context"
 
-	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
 )
 
 type StorageQueryHandlers struct {
@@ -21,11 +22,11 @@ func NewStorageQueryHandlers(repository StorageWithBooksRepository) StorageQuery
 }
 
 type GetAllStorages struct {
-	QueryModel
+	application.QueryModel
 }
 
 func NewGetAllStorages(aggregateID string) GetAllStorages {
-	return GetAllStorages{QueryModel: QueryModel{ID: aggregateID}}
+	return GetAllStorages{QueryModel: application.QueryModel{ID: aggregateID}}
 }
 
 type GetAllStoragesQueryHandler struct {
@@ -36,17 +37,17 @@ func NewGetAllStoragesQueryHandler(repository StorageWithBooksRepository) GetAll
 	return GetAllStoragesQueryHandler{repository: repository}
 }
 
-func (h GetAllStoragesQueryHandler) Handle(ctx context.Context, query GetAllStorages) ([]domain.StorageWithBooks, error) {
+func (h GetAllStoragesQueryHandler) Handle(ctx context.Context, query GetAllStorages) ([]storagedomain.StorageWithBooks, error) {
 	return h.repository.GetAllStoragesBySchoolID(ctx, query.AggregateID())
 }
 
 type GetStorageByID struct {
-	QueryModel
+	application.QueryModel
 	StorageID string
 }
 
 func NewGetStorageByID(aggregateID, storageID string) GetStorageByID {
-	return GetStorageByID{QueryModel: QueryModel{ID: aggregateID}, StorageID: storageID}
+	return GetStorageByID{QueryModel: application.QueryModel{ID: aggregateID}, StorageID: storageID}
 }
 
 type GetStorageByIDQueryHandler struct {
@@ -57,17 +58,17 @@ func NewGetStorageByIDQueryHandler(repository StorageWithBooksRepository) GetSto
 	return GetStorageByIDQueryHandler{repository: repository}
 }
 
-func (h GetStorageByIDQueryHandler) Handle(ctx context.Context, query GetStorageByID) (domain.StorageWithBooks, error) {
+func (h GetStorageByIDQueryHandler) Handle(ctx context.Context, query GetStorageByID) (storagedomain.StorageWithBooks, error) {
 	return h.repository.GetStorageByID(ctx, query.AggregateID(), query.StorageID)
 }
 
 type GetStorageByName struct {
-	QueryModel
+	application.QueryModel
 	Name string
 }
 
 func NewGetStorageByName(aggregateID string, name string) GetStorageByName {
-	return GetStorageByName{QueryModel: QueryModel{ID: aggregateID}, Name: name}
+	return GetStorageByName{QueryModel: application.QueryModel{ID: aggregateID}, Name: name}
 }
 
 type GetStorageByNameQueryHandler struct {
@@ -78,6 +79,6 @@ func NewGetStorageByNameQueryHandler(repositoty StorageWithBooksRepository) GetS
 	return GetStorageByNameQueryHandler{repository: repositoty}
 }
 
-func (h GetStorageByNameQueryHandler) Handle(ctx context.Context, query GetStorageByName) (domain.StorageWithBooks, error) {
+func (h GetStorageByNameQueryHandler) Handle(ctx context.Context, query GetStorageByName) (storagedomain.StorageWithBooks, error) {
 	return h.repository.GetStorageByName(ctx, query.AggregateID(), query.Name)
 }

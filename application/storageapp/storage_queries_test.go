@@ -1,28 +1,28 @@
-package application_test
+package storageapp_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/kammeph/school-book-storage-service/application"
-	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/application/storageapp"
+	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	storage1School1        = domain.NewStorageWithBooks("school1", "storage1School1", "Closet 1", "Room 101")
-	storage2School1        = domain.NewStorageWithBooks("school1", "storage2School1", "Closet 2", "Room 101")
-	storage1School2        = domain.NewStorageWithBooks("school2", "storage1School2", "Closet 1", "Room 203")
+	storage1School1        = storagedomain.NewStorageWithBooks("school1", "storage1School1", "Closet 1", "Room 101")
+	storage2School1        = storagedomain.NewStorageWithBooks("school1", "storage2School1", "Closet 2", "Room 101")
+	storage1School2        = storagedomain.NewStorageWithBooks("school2", "storage1School2", "Closet 1", "Room 203")
 	emptyRepository        = memory.NewMemoryRepository()
 	repositoryWithStorages = memory.NewMemoryRepositoryWithStorages(
-		[]domain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
+		[]storagedomain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
 )
 
 func TestGetAllStorages(t *testing.T) {
 	tests := []struct {
 		name             string
-		repository       application.StorageWithBooksRepository
+		repository       storageapp.StorageWithBooksRepository
 		queryID          string
 		numberOfStorages int
 		expectError      bool
@@ -58,8 +58,8 @@ func TestGetAllStorages(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			handler := application.NewGetAllStoragesQueryHandler(test.repository)
-			query := application.NewGetAllStorages(test.queryID)
+			handler := storageapp.NewGetAllStoragesQueryHandler(test.repository)
+			query := storageapp.NewGetAllStorages(test.queryID)
 			ctx := context.Background()
 			storages, err := handler.Handle(ctx, query)
 			if test.expectError {
@@ -69,14 +69,13 @@ func TestGetAllStorages(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, storages)
 			assert.Len(t, storages, test.numberOfStorages)
-
 		})
 	}
 }
 func TestGetStoragesByID(t *testing.T) {
 	tests := []struct {
 		name        string
-		repository  application.StorageWithBooksRepository
+		repository  storageapp.StorageWithBooksRepository
 		queryID     string
 		storageID   string
 		expectError bool
@@ -112,8 +111,8 @@ func TestGetStoragesByID(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			handler := application.NewGetStorageByIDQueryHandler(test.repository)
-			query := application.NewGetStorageByID(test.queryID, test.storageID)
+			handler := storageapp.NewGetStorageByIDQueryHandler(test.repository)
+			query := storageapp.NewGetStorageByID(test.queryID, test.storageID)
 			ctx := context.Background()
 			storage, err := handler.Handle(ctx, query)
 			if test.expectError {
@@ -130,7 +129,7 @@ func TestGetStoragesByID(t *testing.T) {
 func TestGetStoragesByName(t *testing.T) {
 	tests := []struct {
 		name        string
-		repository  application.StorageWithBooksRepository
+		repository  storageapp.StorageWithBooksRepository
 		queryID     string
 		storaNamege string
 		expectError bool
@@ -166,8 +165,8 @@ func TestGetStoragesByName(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			handler := application.NewGetStorageByNameQueryHandler(test.repository)
-			query := application.NewGetStorageByName(test.queryID, test.storaNamege)
+			handler := storageapp.NewGetStorageByNameQueryHandler(test.repository)
+			query := storageapp.NewGetStorageByName(test.queryID, test.storaNamege)
 			ctx := context.Background()
 			storage, err := handler.Handle(ctx, query)
 			if test.expectError {

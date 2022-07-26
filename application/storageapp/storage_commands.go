@@ -1,9 +1,10 @@
-package application
+package storageapp
 
 import (
 	"context"
 
-	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
 )
 
 type StorageCommandHandlers struct {
@@ -13,7 +14,7 @@ type StorageCommandHandlers struct {
 	RelocateStorageHandler RelocateStorageCommandHandler
 }
 
-func NewStorageCommandHandlers(store Store, publisher EventPublisher) StorageCommandHandlers {
+func NewStorageCommandHandlers(store application.Store, publisher application.EventPublisher) StorageCommandHandlers {
 	return StorageCommandHandlers{
 		AddStorageHandler:      NewAddStorageCommandHandler(store, publisher),
 		RemoveStorageHandler:   NewRemoveStorageCommandHandler(store, publisher),
@@ -23,21 +24,21 @@ func NewStorageCommandHandlers(store Store, publisher EventPublisher) StorageCom
 }
 
 type AddStorageCommand struct {
-	CommandModel
+	application.CommandModel
 	Name     string `json:"name"`
 	Location string `json:"location"`
 }
 
 type AddStorageCommandHandler struct {
-	*CommandHandlerModel
+	*application.CommandHandlerModel
 }
 
-func NewAddStorageCommandHandler(store Store, publisher EventPublisher) AddStorageCommandHandler {
-	return AddStorageCommandHandler{NewCommandHandlerModel(store, publisher)}
+func NewAddStorageCommandHandler(store application.Store, publisher application.EventPublisher) AddStorageCommandHandler {
+	return AddStorageCommandHandler{application.NewCommandHandlerModel(store, publisher)}
 }
 
 func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorageCommand) (string, error) {
-	aggregate := domain.NewSchoolStorageAggregateWithID(command.AggregateID())
+	aggregate := storagedomain.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return "", err
 	}
@@ -52,21 +53,21 @@ func (h AddStorageCommandHandler) Handle(ctx context.Context, command AddStorage
 }
 
 type RemoveStorageCommand struct {
-	CommandModel
+	application.CommandModel
 	StorageID string `json:"storageId"`
 	Reason    string `json:"reason"`
 }
 
 type RemoveStorageCommandHandler struct {
-	*CommandHandlerModel
+	*application.CommandHandlerModel
 }
 
-func NewRemoveStorageCommandHandler(store Store, publisher EventPublisher) RemoveStorageCommandHandler {
-	return RemoveStorageCommandHandler{NewCommandHandlerModel(store, publisher)}
+func NewRemoveStorageCommandHandler(store application.Store, publisher application.EventPublisher) RemoveStorageCommandHandler {
+	return RemoveStorageCommandHandler{application.NewCommandHandlerModel(store, publisher)}
 }
 
 func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveStorageCommand) error {
-	aggregate := domain.NewSchoolStorageAggregateWithID(command.AggregateID())
+	aggregate := storagedomain.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return err
 	}
@@ -77,22 +78,22 @@ func (h RemoveStorageCommandHandler) Handle(ctx context.Context, command RemoveS
 }
 
 type RenameStorageCommand struct {
-	CommandModel
+	application.CommandModel
 	StorageID string `json:"storageId"`
 	Name      string `json:"name"`
 	Reason    string `json:"reason"`
 }
 
 type RenameStorageCommandHandler struct {
-	*CommandHandlerModel
+	*application.CommandHandlerModel
 }
 
-func NewRenameStorageCommandHandler(store Store, publisher EventPublisher) RenameStorageCommandHandler {
-	return RenameStorageCommandHandler{NewCommandHandlerModel(store, publisher)}
+func NewRenameStorageCommandHandler(store application.Store, publisher application.EventPublisher) RenameStorageCommandHandler {
+	return RenameStorageCommandHandler{application.NewCommandHandlerModel(store, publisher)}
 }
 
 func (h RenameStorageCommandHandler) Handle(ctx context.Context, command RenameStorageCommand) error {
-	aggregate := domain.NewSchoolStorageAggregateWithID(command.AggregateID())
+	aggregate := storagedomain.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return err
 	}
@@ -103,22 +104,22 @@ func (h RenameStorageCommandHandler) Handle(ctx context.Context, command RenameS
 }
 
 type RelocateStorageCommand struct {
-	CommandModel
+	application.CommandModel
 	StorageID string `json:"storageId"`
 	Location  string `json:"location"`
 	Reason    string `json:"reason"`
 }
 
 type RelocateStorageCommandHandler struct {
-	*CommandHandlerModel
+	*application.CommandHandlerModel
 }
 
-func NewRelocateStorageCommandHandler(store Store, publisher EventPublisher) RelocateStorageCommandHandler {
-	return RelocateStorageCommandHandler{NewCommandHandlerModel(store, publisher)}
+func NewRelocateStorageCommandHandler(store application.Store, publisher application.EventPublisher) RelocateStorageCommandHandler {
+	return RelocateStorageCommandHandler{application.NewCommandHandlerModel(store, publisher)}
 }
 
 func (h RelocateStorageCommandHandler) Handle(ctx context.Context, command RelocateStorageCommand) error {
-	aggregate := domain.NewSchoolStorageAggregateWithID(command.AggregateID())
+	aggregate := storagedomain.NewSchoolStorageAggregateWithID(command.AggregateID())
 	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return err
 	}
