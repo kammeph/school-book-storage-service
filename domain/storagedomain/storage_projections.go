@@ -1,4 +1,4 @@
-package domain
+package storagedomain
 
 type BookInStorage struct {
 	BookID   string `json:"bookId" bson:"bookId"`
