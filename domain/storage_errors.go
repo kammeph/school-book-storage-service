@@ -8,7 +8,6 @@ import (
 var (
 	ErrStorageNameNotSet     = errors.New("storage name not set")
 	ErrStorageLocationNotSet = errors.New("storage location not set")
-	ErrReasonNotSpecified    = errors.New("no reason specified")
 )
 
 func ErrStoragesWithIdAlreadyExists(id string) error {
@@ -29,8 +28,4 @@ func ErrStorageByNameNotFound(name string) error {
 
 func ErrMultipleStoragesWithNameFound(name string) error {
 	return fmt.Errorf("there are more than one storage with the name %s", name)
-}
-
-func ErrUnknownEvent(event Event) error {
-	return fmt.Errorf("unhandled event %T", event)
 }

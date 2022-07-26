@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestAggregateWithStorages(storages []domain.Storage) *domain.SchoolStorageAggregate {
+func initStorageAggregate(storages []domain.Storage) *domain.SchoolStorageAggregate {
 	aggregate := domain.NewSchoolStorageAggregate()
 	aggregate.Storages = storages
 	return aggregate
@@ -62,7 +62,7 @@ func TestAddStorage(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aggregate := newTestAggregateWithStorages(test.storages)
+			aggregate := initStorageAggregate(test.storages)
 			storageID, err := aggregate.AddStorage(test.storageName, test.storageLocation)
 			if test.expectError {
 				assert.Error(t, err)
@@ -119,7 +119,7 @@ func TestRemoveStorage(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aggregate := newTestAggregateWithStorages(test.storages)
+			aggregate := initStorageAggregate(test.storages)
 			err := aggregate.RemoveStorage(storageID, test.reason)
 			if test.expectError {
 				assert.Error(t, err)
@@ -196,7 +196,7 @@ func TestRenameStorage(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aggregate := newTestAggregateWithStorages(test.storages)
+			aggregate := initStorageAggregate(test.storages)
 			err := aggregate.RenameStorage(storageID, test.storageName, test.reason)
 			if test.expectError {
 				assert.Error(t, err)
@@ -272,7 +272,7 @@ func TestSetStorageLocation(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aggregate := newTestAggregateWithStorages(test.storages)
+			aggregate := initStorageAggregate(test.storages)
 			err := aggregate.RelocateStorage(storageID, test.storageLocation, test.reason)
 			if test.expectError {
 				assert.Error(t, err)
