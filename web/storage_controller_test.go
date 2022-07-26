@@ -9,15 +9,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kammeph/school-book-storage-service/application"
+	"github.com/kammeph/school-book-storage-service/application/storageapp"
 	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/kammeph/school-book-storage-service/web"
 	"github.com/stretchr/testify/assert"
 )
 
 func getStorageController() *web.StorageController {
-	eventDataForRemove, _ := json.Marshal(domain.StorageAddedEvent{
+	eventDataForRemove, _ := json.Marshal(storagedomain.StorageAddedEvent{
 		SchoolID:  "school",
 		StorageID: "testRemove",
 		Name:      "Closet to Remove",
@@ -25,12 +26,12 @@ func getStorageController() *web.StorageController {
 	})
 	eventForRemove := domain.EventModel{
 		ID:      "school",
-		Type:    domain.StorageAdded,
+		Type:    storagedomain.StorageAdded,
 		Version: 1,
 		At:      time.Now(),
 		Data:    string(eventDataForRemove),
 	}
-	eventDataForUpdate, _ := json.Marshal(domain.StorageAddedEvent{
+	eventDataForUpdate, _ := json.Marshal(storagedomain.StorageAddedEvent{
 		SchoolID:  "school",
 		StorageID: "testUpdate",
 		Name:      "Closet to Update",
@@ -38,19 +39,19 @@ func getStorageController() *web.StorageController {
 	})
 	eventForUpdate := domain.EventModel{
 		ID:      "school",
-		Type:    domain.StorageAdded,
+		Type:    storagedomain.StorageAdded,
 		Version: 2,
 		At:      time.Now(),
 		Data:    string(eventDataForUpdate),
 	}
 	store := memory.NewMemoryStoreWithEvents([]domain.Event{&eventForRemove, &eventForUpdate})
-	storage1School1 := domain.NewStorageWithBooks("school1", "storage1School1", "Closet 1", "Room 101")
-	storage2School1 := domain.NewStorageWithBooks("school1", "storage2School1", "Closet 2", "Room 101")
-	storage1School2 := domain.NewStorageWithBooks("school2", "storage1School2", "Closet 1", "Room 203")
+	storage1School1 := storagedomain.NewStorageWithBooks("school1", "storage1School1", "Closet 1", "Room 101")
+	storage2School1 := storagedomain.NewStorageWithBooks("school1", "storage2School1", "Closet 2", "Room 101")
+	storage1School2 := storagedomain.NewStorageWithBooks("school2", "storage1School2", "Closet 1", "Room 203")
 	repository := memory.NewMemoryRepositoryWithStorages(
-		[]domain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
-	commandHandlers := application.NewStorageCommandHandlers(store, nil)
-	queryHandlers := application.NewStorageQueryHandlers(repository)
+		[]storagedomain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
+	commandHandlers := storageapp.NewStorageCommandHandlers(store, nil)
+	queryHandlers := storageapp.NewStorageQueryHandlers(repository)
 	return web.NewStorageController(commandHandlers, queryHandlers)
 }
 
@@ -102,7 +103,7 @@ func TestRemoveStorage(t *testing.T) {
 			name:       "remove storage failed",
 			body:       `{"aggregateId":"school","storageId":"unknown","reason":"test"}`,
 			statusCode: http.StatusBadRequest,
-			response:   fmt.Sprintln(domain.ErrStorageIDNotFound("unknown").Error()),
+			response:   fmt.Sprintln(storagedomain.ErrStorageIDNotFound("unknown").Error()),
 		},
 	}
 	for _, test := range tests {
@@ -136,7 +137,7 @@ func TestRenameStorage(t *testing.T) {
 			name:       "rename storage failed",
 			body:       `{"aggregateId":"school","storageId":"testUpdate","name":"Closet to Update","reason":"test"}`,
 			statusCode: http.StatusBadRequest,
-			response:   fmt.Sprintln(domain.ErrStorageAlreadyExists("Closet to Update", "Room 12").Error()),
+			response:   fmt.Sprintln(storagedomain.ErrStorageAlreadyExists("Closet to Update", "Room 12").Error()),
 		},
 	}
 	for _, test := range tests {
@@ -170,7 +171,7 @@ func TestRelocateStorage(t *testing.T) {
 			name:       "rename storage failed",
 			body:       `{"aggregateId":"school","storageId":"testUpdate","location":"Room 12","reason":"test"}`,
 			statusCode: http.StatusBadRequest,
-			response:   fmt.Sprintln(domain.ErrStorageAlreadyExists("Closet to Update", "Room 12").Error()),
+			response:   fmt.Sprintln(storagedomain.ErrStorageAlreadyExists("Closet to Update", "Room 12").Error()),
 		},
 	}
 	for _, test := range tests {

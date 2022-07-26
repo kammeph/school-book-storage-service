@@ -1,7 +1,9 @@
-package domain
+package storagedomain
+
+import "github.com/kammeph/school-book-storage-service/domain"
 
 type SchoolStorageAggregate struct {
-	*AggregateModel
+	*domain.AggregateModel
 	Storages []Storage
 }
 
@@ -9,7 +11,7 @@ func NewSchoolStorageAggregate() *SchoolStorageAggregate {
 	aggregate := &SchoolStorageAggregate{
 		Storages: []Storage{},
 	}
-	model := NewAggregateModel(aggregate.On)
+	model := domain.NewAggregateModel(aggregate.On)
 	aggregate.AggregateModel = &model
 	return aggregate
 }
@@ -20,7 +22,7 @@ func NewSchoolStorageAggregateWithID(id string) *SchoolStorageAggregate {
 	return aggregate
 }
 
-func (s *SchoolStorageAggregate) On(event Event) error {
+func (s *SchoolStorageAggregate) On(event domain.Event) error {
 	switch event.EventType() {
 	case StorageAdded:
 		return s.onStorageAdded(event)
@@ -31,11 +33,11 @@ func (s *SchoolStorageAggregate) On(event Event) error {
 	case StorageRelocated:
 		return s.onStorageRelocated(event)
 	default:
-		return ErrUnknownEvent(event)
+		return domain.ErrUnknownEvent(event)
 	}
 }
 
-func (a *SchoolStorageAggregate) onStorageAdded(event Event) error {
+func (a *SchoolStorageAggregate) onStorageAdded(event domain.Event) error {
 	eventData := StorageAddedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -50,7 +52,7 @@ func (a *SchoolStorageAggregate) onStorageAdded(event Event) error {
 	return nil
 }
 
-func (a *SchoolStorageAggregate) onStorageRemoved(event Event) error {
+func (a *SchoolStorageAggregate) onStorageRemoved(event domain.Event) error {
 	eventData := StorageRemovedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -62,7 +64,7 @@ func (a *SchoolStorageAggregate) onStorageRemoved(event Event) error {
 	return nil
 }
 
-func (a *SchoolStorageAggregate) onStorageRenamed(event Event) error {
+func (a *SchoolStorageAggregate) onStorageRenamed(event domain.Event) error {
 	eventData := StorageRenamedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
@@ -77,7 +79,7 @@ func (a *SchoolStorageAggregate) onStorageRenamed(event Event) error {
 	return nil
 }
 
-func (a *SchoolStorageAggregate) onStorageRelocated(event Event) error {
+func (a *SchoolStorageAggregate) onStorageRelocated(event domain.Event) error {
 	eventData := StorageRelocatedEvent{}
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
 	"github.com/kammeph/school-book-storage-service/testing/mocks"
 	"github.com/stretchr/testify/assert"
@@ -53,7 +53,7 @@ func TestGetAllStoragesBySchoolID(t *testing.T) {
 			collection := database.Collection(test.collection)
 			collection.(*mocks.MockCollection).
 				On("Find", context.Background(), bson.D{{Key: "schoolId", Value: "school"}}).
-				Return([]domain.StorageWithBooks{
+				Return([]storagedomain.StorageWithBooks{
 					{
 						SchoolID:  test.schoolID,
 						StorageID: "storage1",
@@ -127,7 +127,7 @@ func TestGetStoragesByID(t *testing.T) {
 			collection := database.Collection(test.collection)
 			collection.(*mocks.MockCollection).
 				On("FindOne", context.Background(), bson.D{{Key: "storageId", Value: "storage1"}}).
-				Return(&mocks.MockSingleResult{Storage: &domain.StorageWithBooks{
+				Return(&mocks.MockSingleResult{Storage: &storagedomain.StorageWithBooks{
 					SchoolID:  test.schoolID,
 					StorageID: test.storageID,
 					Name:      "Closet 1",
@@ -198,7 +198,7 @@ func TestGetStoragesByName(t *testing.T) {
 			collection := database.Collection(test.collection)
 			collection.(*mocks.MockCollection).
 				On("FindOne", context.Background(), bson.D{{Key: "name", Value: "Closet 1"}}).
-				Return(&mocks.MockSingleResult{Storage: &domain.StorageWithBooks{
+				Return(&mocks.MockSingleResult{Storage: &storagedomain.StorageWithBooks{
 					SchoolID:  test.schoolID,
 					StorageID: test.storageName,
 					Name:      "Closet 1",
@@ -270,7 +270,7 @@ func TestInsertStorage(t *testing.T) {
 					{Key: "schoolId", Value: "school"},
 					{Key: "name", Value: "Closet 1"},
 					{Key: "location", Value: "Room 101"},
-					{Key: "books", Value: []domain.BookInStorage{}},
+					{Key: "books", Value: []storagedomain.BookInStorage{}},
 				}).
 				Return(nil, nil)
 			collection.(*mocks.MockCollection).
@@ -279,16 +279,16 @@ func TestInsertStorage(t *testing.T) {
 					{Key: "schoolId", Value: "error"},
 					{Key: "name", Value: "Closet 1"},
 					{Key: "location", Value: "Room 101"},
-					{Key: "books", Value: []domain.BookInStorage{}},
+					{Key: "books", Value: []storagedomain.BookInStorage{}},
 				}).
 				Return(nil, errors.New("mock-insert-error"))
 			repository := mongodb.NewStorageWithBookRepository(client, test.database, test.collection)
-			storage := domain.StorageWithBooks{
+			storage := storagedomain.StorageWithBooks{
 				StorageID: test.storageID,
 				SchoolID:  test.schoolID,
 				Name:      test.storageName,
 				Location:  test.storageLocation,
-				Books:     []domain.BookInStorage{},
+				Books:     []storagedomain.BookInStorage{},
 			}
 			err := repository.InsertStorage(context.Background(), storage)
 			if test.expectError {

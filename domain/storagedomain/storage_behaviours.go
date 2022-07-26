@@ -1,7 +1,8 @@
-package domain
+package storagedomain
 
 import (
 	"github.com/google/uuid"
+	"github.com/kammeph/school-book-storage-service/domain"
 )
 
 func (a *SchoolStorageAggregate) AddStorage(name, location string) (string, error) {
@@ -33,7 +34,7 @@ func (a *SchoolStorageAggregate) RemoveStorage(storageID string, reason string) 
 		return err
 	}
 	if reason == "" {
-		return ErrReasonNotSpecified
+		return domain.ErrReasonNotSpecified
 	}
 	event, err := NewStorageRemoved(a, storageID, reason)
 	if err != nil {
@@ -54,7 +55,7 @@ func (a *SchoolStorageAggregate) RenameStorage(storageID string, name string, re
 		return ErrStorageNameNotSet
 	}
 	if reason == "" {
-		return ErrReasonNotSpecified
+		return domain.ErrReasonNotSpecified
 	}
 	storagesWithName := a.getStoragesByName(name)
 	if len(storagesWithName) > 0 {
@@ -83,7 +84,7 @@ func (a *SchoolStorageAggregate) RelocateStorage(storageID string, location stri
 		return ErrStorageLocationNotSet
 	}
 	if reason == "" {
-		return ErrReasonNotSpecified
+		return domain.ErrReasonNotSpecified
 	}
 	storagesWithLocation := a.getStoragesByLocation(location)
 	if len(storagesWithLocation) > 0 {

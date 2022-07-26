@@ -1,4 +1,4 @@
-package domain_test
+package storagedomain_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +36,7 @@ func TestOn(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			eventType:         domain.StorageAdded,
+			eventType:         storagedomain.StorageAdded,
 			err:               nil,
 			expectError:       false,
 			addDefaultStorage: false,
@@ -48,8 +49,8 @@ func TestOn(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			eventType:         domain.StorageAdded,
-			err:               domain.ErrStoragesWithIdAlreadyExists(storageID),
+			eventType:         storagedomain.StorageAdded,
+			err:               storagedomain.ErrStoragesWithIdAlreadyExists(storageID),
 			expectError:       true,
 			addDefaultStorage: true,
 		},
@@ -60,8 +61,8 @@ func TestOn(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			eventType:         domain.StorageRemoved,
-			err:               domain.ErrStorageIDNotFound(storageID),
+			eventType:         storagedomain.StorageRemoved,
+			err:               storagedomain.ErrStorageIDNotFound(storageID),
 			expectError:       false,
 			addDefaultStorage: true,
 			operation:         "remove",
@@ -73,8 +74,8 @@ func TestOn(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location",
 			reason:            "test",
-			eventType:         domain.StorageRemoved,
-			err:               domain.ErrStorageIDNotFound(storageID),
+			eventType:         storagedomain.StorageRemoved,
+			err:               storagedomain.ErrStorageIDNotFound(storageID),
 			expectError:       true,
 			addDefaultStorage: false,
 			operation:         "remove",
@@ -86,7 +87,7 @@ func TestOn(t *testing.T) {
 			storageName:       "storage renamed",
 			storageLocation:   "location",
 			reason:            "test",
-			eventType:         domain.StorageRenamed,
+			eventType:         storagedomain.StorageRenamed,
 			err:               nil,
 			expectError:       false,
 			addDefaultStorage: true,
@@ -99,8 +100,8 @@ func TestOn(t *testing.T) {
 			storageName:       "storage renamed",
 			storageLocation:   "location",
 			reason:            "test",
-			eventType:         domain.StorageRenamed,
-			err:               domain.ErrStorageIDNotFound(storageID),
+			eventType:         storagedomain.StorageRenamed,
+			err:               storagedomain.ErrStorageIDNotFound(storageID),
 			expectError:       true,
 			addDefaultStorage: false,
 		},
@@ -111,7 +112,7 @@ func TestOn(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location relocated",
 			reason:            "test",
-			eventType:         domain.StorageRelocated,
+			eventType:         storagedomain.StorageRelocated,
 			err:               nil,
 			expectError:       false,
 			addDefaultStorage: true,
@@ -123,8 +124,8 @@ func TestOn(t *testing.T) {
 			storageName:       "storage",
 			storageLocation:   "location relocated",
 			reason:            "test",
-			eventType:         domain.StorageRelocated,
-			err:               domain.ErrStorageIDNotFound(storageID),
+			eventType:         storagedomain.StorageRelocated,
+			err:               storagedomain.ErrStorageIDNotFound(storageID),
 			expectError:       true,
 			addDefaultStorage: false,
 		},
@@ -145,44 +146,44 @@ func TestOn(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var event domain.Event
 			switch test.eventType {
-			case domain.StorageAdded:
+			case storagedomain.StorageAdded:
 				event = &domain.EventModel{
 					Version: test.eventVersion,
 					At:      test.eventAt,
 					Type:    test.eventType,
 				}
-				eventData := domain.StorageAddedEvent{"storageAggregate", storageID, test.storageName, test.storageLocation}
+				eventData := storagedomain.StorageAddedEvent{"storageAggregate", storageID, test.storageName, test.storageLocation}
 				event.SetJsonData(eventData)
-			case domain.StorageRemoved:
+			case storagedomain.StorageRemoved:
 				event = &domain.EventModel{
 					Version: test.eventVersion,
 					At:      test.eventAt,
 					Type:    test.eventType,
 				}
-				eventData := domain.StorageRemovedEvent{storageID, test.storageName}
+				eventData := storagedomain.StorageRemovedEvent{storageID, test.storageName}
 				event.SetJsonData(eventData)
-			case domain.StorageRenamed:
+			case storagedomain.StorageRenamed:
 				event = &domain.EventModel{
 					Version: test.eventVersion,
 					At:      test.eventAt,
 					Type:    test.eventType,
 				}
-				eventData := domain.StorageRenamedEvent{storageID, test.storageName, test.reason}
+				eventData := storagedomain.StorageRenamedEvent{storageID, test.storageName, test.reason}
 				event.SetJsonData(eventData)
-			case domain.StorageRelocated:
+			case storagedomain.StorageRelocated:
 				event = &domain.EventModel{
 					Version: test.eventVersion,
 					At:      test.eventAt,
 					Type:    test.eventType,
 				}
-				eventData := domain.StorageRelocatedEvent{storageID, test.storageLocation, test.reason}
+				eventData := storagedomain.StorageRelocatedEvent{storageID, test.storageLocation, test.reason}
 				event.SetJsonData(eventData)
 			default:
 				event = &UnknownEvent{}
 			}
-			aggregate := domain.NewSchoolStorageAggregate()
+			aggregate := storagedomain.NewSchoolStorageAggregate()
 			if test.addDefaultStorage {
-				aggregate.Storages = append(aggregate.Storages, domain.Storage{
+				aggregate.Storages = append(aggregate.Storages, storagedomain.Storage{
 					ID:       storageID,
 					Name:     "storage",
 					Location: "location",
