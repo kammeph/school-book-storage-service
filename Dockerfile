@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . .
 
-RUN /build.sh
+RUN ./build.sh
 
 ##
 ## Deploy
