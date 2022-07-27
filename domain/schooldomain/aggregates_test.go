@@ -6,6 +6,7 @@ import (
 
 	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/kammeph/school-book-storage-service/domain/schooldomain"
+	"github.com/kammeph/school-book-storage-service/fp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -161,7 +162,8 @@ func TestSchoolOn(t *testing.T) {
 			}
 			assert.NoError(t, err)
 			assert.Equal(t, test.eventVersion, aggregate.Version)
-			school, idx, err := aggregate.GetSchoolByID(test.schoolID)
+			school := fp.Find(aggregate.Schools, func(s schooldomain.School) bool { return s.ID == test.schoolID })
+			assert.NotNil(t, school)
 			if test.operation == "add" {
 				assert.Equal(t, test.eventAt, school.CreatedAt)
 			}
@@ -172,9 +174,6 @@ func TestSchoolOn(t *testing.T) {
 			if test.operation == "update" {
 				assert.Equal(t, test.eventAt, school.UpdatedAt)
 			}
-			assert.NoError(t, err)
-			assert.Greater(t, idx, -1)
-			assert.NotNil(t, school)
 			assert.Equal(t, test.schoolName, school.Name)
 		})
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
+	"github.com/kammeph/school-book-storage-service/fp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -62,7 +63,7 @@ func TestOn(t *testing.T) {
 			storageLocation:   "location",
 			reason:            "test",
 			eventType:         storagedomain.StorageRemoved,
-			err:               storagedomain.ErrStorageIDNotFound(storageID),
+			err:               nil,
 			expectError:       false,
 			addDefaultStorage: true,
 			operation:         "remove",
@@ -75,8 +76,8 @@ func TestOn(t *testing.T) {
 			storageLocation:   "location",
 			reason:            "test",
 			eventType:         storagedomain.StorageRemoved,
-			err:               storagedomain.ErrStorageIDNotFound(storageID),
-			expectError:       true,
+			err:               nil,
+			expectError:       false,
 			addDefaultStorage: false,
 			operation:         "remove",
 		},
@@ -196,10 +197,9 @@ func TestOn(t *testing.T) {
 			}
 			assert.NoError(t, err)
 			assert.Equal(t, test.eventVersion, aggregate.Version)
-			storage, idx, err := aggregate.GetStorageByID(storageID)
+			storage := fp.Find(aggregate.Storages, func(s storagedomain.Storage) bool { return s.ID == storageID })
 			if test.operation == "remove" {
-				assert.Equal(t, test.err, err)
-				assert.Equal(t, -1, idx)
+				assert.Nil(t, storage)
 				return
 			}
 			if test.operation == "add" {
@@ -208,8 +208,6 @@ func TestOn(t *testing.T) {
 			if test.operation == "update" {
 				assert.Equal(t, test.eventAt, storage.UpdatedAt)
 			}
-			assert.NoError(t, err)
-			assert.Greater(t, idx, -1)
 			assert.NotNil(t, storage)
 			assert.Equal(t, test.storageName, storage.Name)
 			assert.Equal(t, test.storageLocation, storage.Location)
