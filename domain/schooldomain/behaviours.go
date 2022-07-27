@@ -3,6 +3,7 @@ package schooldomain
 import (
 	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/fp"
 )
 
 func (a *SchoolAggregate) AddSchool(name string) (string, error) {
@@ -26,9 +27,8 @@ func (a *SchoolAggregate) AddSchool(name string) (string, error) {
 }
 
 func (a *SchoolAggregate) DeactivateSchool(schoolID string, reason string) error {
-	_, _, err := a.GetSchoolByID(schoolID)
-	if err != nil {
-		return err
+	if !fp.Some(a.Schools, func(s School) bool { return s.ID == schoolID }) {
+		return ErrSchoolWithIDNotFound(schoolID)
 	}
 	if reason == "" {
 		return domain.ErrReasonNotSpecified
@@ -50,7 +50,7 @@ func (a *SchoolAggregate) RenameSchool(schoolID string, name string, reason stri
 	if reason == "" {
 		return domain.ErrReasonNotSpecified
 	}
-	schoolsWithName := a.getSchoolsByName(name)
+	schoolsWithName := fp.Filter(a.Schools, func(s School) bool { return s.Name == name })
 	if len(schoolsWithName) > 0 {
 		for _, s := range schoolsWithName {
 			if s.Name == name {

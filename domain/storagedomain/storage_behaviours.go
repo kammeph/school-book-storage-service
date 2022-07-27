@@ -3,6 +3,7 @@ package storagedomain
 import (
 	"github.com/google/uuid"
 	"github.com/kammeph/school-book-storage-service/domain"
+	"github.com/kammeph/school-book-storage-service/fp"
 )
 
 func (a *SchoolStorageAggregate) AddStorage(name, location string) (string, error) {
@@ -29,9 +30,8 @@ func (a *SchoolStorageAggregate) AddStorage(name, location string) (string, erro
 }
 
 func (a *SchoolStorageAggregate) RemoveStorage(storageID string, reason string) error {
-	_, _, err := a.GetStorageByID(storageID)
-	if err != nil {
-		return err
+	if !fp.Some(a.Storages, func(s Storage) bool { return s.ID == storageID }) {
+		return ErrStorageIDNotFound(storageID)
 	}
 	if reason == "" {
 		return domain.ErrReasonNotSpecified
@@ -47,9 +47,9 @@ func (a *SchoolStorageAggregate) RemoveStorage(storageID string, reason string) 
 }
 
 func (a *SchoolStorageAggregate) RenameStorage(storageID string, name string, reason string) error {
-	storage, _, err := a.GetStorageByID(storageID)
-	if err != nil {
-		return err
+	storage := fp.Find(a.Storages, func(s Storage) bool { return s.ID == storageID })
+	if storage == nil {
+		return ErrStorageIDNotFound(storageID)
 	}
 	if name == "" {
 		return ErrStorageNameNotSet
@@ -57,7 +57,7 @@ func (a *SchoolStorageAggregate) RenameStorage(storageID string, name string, re
 	if reason == "" {
 		return domain.ErrReasonNotSpecified
 	}
-	storagesWithName := a.getStoragesByName(name)
+	storagesWithName := fp.Filter(a.Storages, func(s Storage) bool { return s.Name == name })
 	if len(storagesWithName) > 0 {
 		for _, s := range storagesWithName {
 			if s.Name == name && s.Location == storage.Location {
@@ -76,9 +76,9 @@ func (a *SchoolStorageAggregate) RenameStorage(storageID string, name string, re
 }
 
 func (a *SchoolStorageAggregate) RelocateStorage(storageID string, location string, reason string) error {
-	storage, _, err := a.GetStorageByID(storageID)
-	if err != nil {
-		return err
+	storage := fp.Find(a.Storages, func(s Storage) bool { return s.ID == storageID })
+	if storage == nil {
+		return ErrStorageIDNotFound(storageID)
 	}
 	if location == "" {
 		return ErrStorageLocationNotSet
@@ -86,7 +86,7 @@ func (a *SchoolStorageAggregate) RelocateStorage(storageID string, location stri
 	if reason == "" {
 		return domain.ErrReasonNotSpecified
 	}
-	storagesWithLocation := a.getStoragesByLocation(location)
+	storagesWithLocation := fp.Filter(a.Storages, func(s Storage) bool { return s.Location == location })
 	if len(storagesWithLocation) > 0 {
 		for _, s := range storagesWithLocation {
 			if s.Name == storage.Name && s.Location == location {
