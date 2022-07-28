@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/kammeph/school-book-storage-service/infrastructure/utils"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -20,7 +21,7 @@ func NewRabbitMQConnection() AmqpConnection {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected to rabbit mq.")
+	log.Println("Successfully connected to rabbit mq.")
 	return AmqpConnectionWrapper{conn}
 }
 

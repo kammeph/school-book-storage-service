@@ -3,6 +3,7 @@ package postgresdb
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/kammeph/school-book-storage-service/infrastructure/utils"
 	_ "github.com/lib/pq"
@@ -29,6 +30,6 @@ func NewPostgresDB() *sql.DB {
 	if err := db.Ping(); err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected and pinged to postgres db.")
+	log.Println("Successfully connected and pinged to postgres db.")
 	return db
 }
