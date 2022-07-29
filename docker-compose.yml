@@ -12,7 +12,7 @@ services:
       - backend-network
     volumes:
       - postgresdb_vol:/var/lib/postgresql/data
-      - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+      - ${PWD}/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
     environment:
       POSTGRES_DB: ${PG_DATABASE}
       POSTGRES_USER: ${PG_USER}
@@ -63,9 +63,10 @@ services:
     image: kammeph/school-book-storage-service:${APP_VERSION}
     container_name: school-book-storage-service
     hostname: school-book-storage-service
+    pull_policy: always
     restart: always
     ports:
-      - ${SERVER_PORT}:9090
+      - ${APP_PORT}:9090
     networks:
       - backend-network
     environment:
