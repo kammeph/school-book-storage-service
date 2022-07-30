@@ -12,7 +12,7 @@ services:
       - backend-network
     volumes:
       - postgresdb_vol:/var/lib/postgresql/data
-      - ${PWD}/postgres-initdb:/docker-entrypoint-initdb.d
+      - ./postgres-initdb:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_DB: ${PG_DATABASE}
       POSTGRES_USER: ${PG_USER}
