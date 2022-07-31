@@ -49,6 +49,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: call portainer webhook
-        uses: jasongitmail/fast-webhook@v1
+        uses: joelwmale/webhook-action@master
         with:
           url: ${{ secrets.PORTAINER_DEV_WEBHOOK_URL }}
