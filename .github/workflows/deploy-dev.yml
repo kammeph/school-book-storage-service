@@ -2,27 +2,26 @@ name: deploy-dev
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: ['dev']
 
 jobs:
- 
   build:
     name: build and test Go application
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.18
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Test
-      run: go test -v ./...
-  
+      - name: Test
+        run: go test -v ./...
+
   docker:
     name: build Docker image and push to Docker Hub
     needs: build
@@ -43,3 +42,13 @@ jobs:
           push: true
           platforms: linux/amd64, linux/arm64 #, linux/386, linux/arm/v6, linux/arm/v7, linux/ppc64le, linux/s390x
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/school-book-storage-service:dev
+
+  redeploy:
+    name: redeploy on portainer
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: call portainer webhook
+        uses: jasongitmail/fast-webhook@v1
+        with:
+          url: ${{ secrets.PORTAINER_DEV_WEBHOOK_URL }}
