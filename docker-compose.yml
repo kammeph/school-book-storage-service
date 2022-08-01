@@ -61,9 +61,9 @@ services:
 
   app:
     image: kammeph/school-book-storage-service
+    build: .
     container_name: school-book-storage-service
     hostname: school-book-storage-service
-    pull_policy: always
     restart: always
     ports:
       - ${APP_PORT}:9090
