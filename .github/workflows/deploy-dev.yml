@@ -45,7 +45,7 @@ jobs:
 
   redeploy:
     name: redeploy on portainer
-    needs: docker
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: call portainer webhook
