@@ -60,7 +60,7 @@ services:
       - backend-network
 
   app:
-    image: kammeph/school-book-storage-service
+    # image: kammeph/school-book-storage-service
     build: .
     container_name: school-book-storage-service
     hostname: school-book-storage-service
