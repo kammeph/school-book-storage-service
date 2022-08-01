@@ -60,7 +60,7 @@ services:
       - backend-network
 
   app:
-    image: kammeph/school-book-storage-service:${APP_VERSION}
+    image: kammeph/school-book-storage-service
     container_name: school-book-storage-service
     hostname: school-book-storage-service
     pull_policy: always
