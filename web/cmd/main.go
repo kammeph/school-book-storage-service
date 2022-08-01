@@ -39,8 +39,8 @@ func main() {
 	http.HandleFunc("/api/hello", func(w http.ResponseWriter, r *http.Request) {
 		web.JsonResponse(w, "hello")
 	})
-	// http.HandleFunc("/api/world", func(w http.ResponseWriter, r *http.Request) {
-	// 	web.JsonResponse(w, "world")
-	// })
+	http.HandleFunc("/api/world", func(w http.ResponseWriter, r *http.Request) {
+		web.JsonResponse(w, "world")
+	})
 	http.ListenAndServe(":9090", nil)
 }
