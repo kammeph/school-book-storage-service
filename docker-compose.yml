@@ -64,6 +64,7 @@ services:
     build: .
     container_name: school-book-storage-service
     hostname: school-book-storage-service
+    pull_policy: build
     restart: always
     ports:
       - ${APP_PORT}:9090
