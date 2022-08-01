@@ -60,11 +60,11 @@ services:
       - backend-network
 
   app:
-    # image: kammeph/school-book-storage-service
-    build: .
+    image: kammeph/school-book-storage-service:latest
+    # build: .
     container_name: school-book-storage-service
     hostname: school-book-storage-service
-    pull_policy: build
+    pull_policy: always
     restart: always
     ports:
       - ${APP_PORT}:9090
