@@ -1,8 +1,7 @@
 package web
 
 import (
-	"context"
-	"fmt"
+	"database/sql"
 	"net/http"
 
 	"github.com/kammeph/school-book-storage-service/application/storageapp"
@@ -28,38 +27,17 @@ func InMemoryConfig() {
 	configureEndpoints(controller)
 }
 
-func PostgresMongoRabbitConfig() {
-	connection := rabbitmq.NewRabbitMQConnection()
-	defer func() {
-		if err := connection.Close(); err != nil {
-			panic(err)
-		}
-		fmt.Println("Connection to rabbit mq closed.")
-	}()
-	db := postgresdb.NewPostgresDB()
-	defer func() {
-		if err := db.Close(); err != nil {
-			panic(err)
-		}
-		fmt.Println("Connection to postgres db closed.")
-	}()
-	client := mongodb.NewMongoClient()
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-		fmt.Println("Connection to mongo db closed.")
-	}()
-	publisher, err := rabbitmq.NewRabbitEventPublisher(connection, "storage")
+func PostgresMongoRabbitConfig(postgresDB *sql.DB, mongoClient mongodb.Client, rabbit rabbitmq.AmqpConnection) {
+	publisher, err := rabbitmq.NewRabbitEventPublisher(rabbit, "storage")
 	if err != nil {
 		panic(err)
 	}
-	subscriber, err := rabbitmq.NewRabbitEventSubscriber(connection)
+	subscriber, err := rabbitmq.NewRabbitEventSubscriber(rabbit)
 	if err != nil {
 		panic(err)
 	}
-	store := postgresdb.NewPostgresStore("storages", db)
-	repository := mongodb.NewStorageWithBookRepository(client, "school_book_storage", "storages")
+	store := postgresdb.NewPostgresStore("storages", postgresDB)
+	repository := mongodb.NewStorageWithBookRepository(mongoClient, "school_book_storage", "storages")
 
 	eventHandler := storageapp.NewStorageEventHandler(repository)
 	subscriber.Subscribe("storage", eventHandler)

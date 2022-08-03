@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/kammeph/school-book-storage-service/infrastructure/utils"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -72,7 +73,7 @@ func NewMongoClient() Client {
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected and pinged to mongo db.")
+	log.Println("Successfully connected and pinged to mongo db.")
 	return &ClientWrapper{client}
 }
 
