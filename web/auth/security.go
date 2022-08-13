@@ -22,8 +22,10 @@ var (
 type AccessClaims struct {
 	jwt.StandardClaims
 	UserID   string            `json:"userId"`
+	SchoolID string            `json:"schoolId"`
 	UserName string            `json:"userName"`
 	Roles    []userdomain.Role `json:"roles"`
+	Locale   userdomain.Locale `json:"locale"`
 }
 
 type RefreshClaims struct {
@@ -121,7 +123,7 @@ func createAccessToken(user userdomain.UserModel, secret string) (string, error)
 			ExpiresAt: expirationTime.Unix(),
 			Issuer:    user.Name,
 		},
-		user.ID, user.Name, user.Roles,
+		user.ID, user.SchoolID, user.Name, user.Roles, user.Locale,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))

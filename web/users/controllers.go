@@ -20,13 +20,17 @@ func NewUsersController(commandHandlers userapp.UserCommandHandlers, queryHandle
 
 func (c *UsersController) GetMe(w http.ResponseWriter, r *http.Request, claims auth.AccessClaims) {
 	user := struct {
-		ID    string            `json:"id"`
-		Name  string            `json:"name"`
-		Roles []userdomain.Role `json:"roles"`
+		ID       string            `json:"id"`
+		SchoolID string            `json:"schoolId"`
+		Name     string            `json:"name"`
+		Roles    []userdomain.Role `json:"roles"`
+		Locale   userdomain.Locale `json:"locale"`
 	}{
-		ID:    claims.UserID,
-		Name:  claims.UserName,
-		Roles: claims.Roles,
+		ID:       claims.UserID,
+		SchoolID: claims.SchoolID,
+		Name:     claims.UserName,
+		Roles:    claims.Roles,
+		Locale:   claims.Locale,
 	}
 	web.JsonResponse(w, user)
 }

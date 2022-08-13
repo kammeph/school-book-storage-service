@@ -9,15 +9,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (a *UsersAggregate) RegisterUser(name, password string) error {
+func (a *UsersAggregate) RegisterUser(name, password string, locale Locale) error {
 	if name == "" {
 		return fmt.Errorf("user name not set")
 	}
 	if password == "" {
 		return fmt.Errorf("user password not set")
 	}
-	user := fp.Find(a.Users, func(u UserModel) bool { return u.Name == name })
-	if user != nil && user.Active {
+	if fp.Some(a.Users, func(u UserModel) bool { return u.Name == name && u.Active }) {
 		return fmt.Errorf("the user with the name %s already exists", name)
 	}
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -25,7 +24,7 @@ func (a *UsersAggregate) RegisterUser(name, password string) error {
 		return err
 	}
 	userID := uuid.NewString()
-	event, err := NewUserRegisteredEvent(a, userID, name, passwordHash, []Role{User})
+	event, err := NewUserRegisteredEvent(a, userID, "", name, passwordHash, []Role{User}, locale)
 	if err != nil {
 		return err
 	}

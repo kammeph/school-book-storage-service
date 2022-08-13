@@ -50,7 +50,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
-	var command userapp.LoginUserCommand
+	var command userapp.RegisterUserCommand
 	if err := json.NewDecoder(r.Body).Decode(&command); err != nil {
 		http.Error(w, err.Error(), 400)
 		return
