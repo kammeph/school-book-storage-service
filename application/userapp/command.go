@@ -23,6 +23,7 @@ type RegisterUserCommand struct {
 	application.CommandModel
 	Name     string
 	Password string
+	Locale   userdomain.Locale
 }
 
 type RegisterUserCommandHandler struct {
@@ -38,8 +39,8 @@ func (h RegisterUserCommandHandler) Handle(ctx context.Context, command Register
 	if err := h.LoadAggregate(ctx, aggregate); err != nil {
 		return err
 	}
-	if err := aggregate.RegisterUser(command.Name, command.Password); err != nil {
-		return nil
+	if err := aggregate.RegisterUser(command.Name, command.Password, command.Locale); err != nil {
+		return err
 	}
 	return h.SaveAndPublish(ctx, aggregate)
 }

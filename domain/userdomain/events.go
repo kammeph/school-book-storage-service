@@ -11,17 +11,27 @@ const (
 
 type UserRegisteredEventData struct {
 	UserID       string `json:"userId"`
+	SchoolID     string `json:"schoolId"`
 	Name         string `json:"name"`
 	PasswordHash []byte `json:"passwordHash"`
 	Roles        []Role `json:"roles"`
+	Locale       Locale `json:"locale"`
 }
 
-func NewUserRegisteredEvent(aggregate domain.Aggregate, userID, name string, passwordHash []byte, roles []Role) (domain.Event, error) {
+func NewUserRegisteredEvent(
+	aggregate domain.Aggregate,
+	userID, schoolID, name string,
+	passwordHash []byte,
+	roles []Role,
+	locale Locale,
+) (domain.Event, error) {
 	eventData := UserRegisteredEventData{
 		UserID:       userID,
+		SchoolID:     schoolID,
 		Name:         name,
 		PasswordHash: passwordHash,
 		Roles:        roles,
+		Locale:       locale,
 	}
 	event := domain.NewEvent(aggregate, UserRegistered)
 	if err := event.SetJsonData(eventData); err != nil {

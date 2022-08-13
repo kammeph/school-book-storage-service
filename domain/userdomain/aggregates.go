@@ -43,7 +43,13 @@ func (a *UsersAggregate) onUserRegistered(event domain.Event) error {
 	if err := event.GetJsonData(&eventData); err != nil {
 		return err
 	}
-	user := NewUser(eventData.UserID, eventData.Name, eventData.PasswordHash, eventData.Roles)
+	user := NewUser(
+		eventData.UserID,
+		eventData.SchoolID,
+		eventData.Name,
+		eventData.PasswordHash,
+		eventData.Roles,
+		eventData.Locale)
 	a.Version = event.EventVersion()
 	a.Users = append(a.Users, user)
 	return nil
