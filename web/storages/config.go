@@ -1,14 +1,16 @@
-package web
+package storages
 
 import (
 	"database/sql"
-	"net/http"
 
 	"github.com/kammeph/school-book-storage-service/application/storageapp"
+	"github.com/kammeph/school-book-storage-service/domain/userdomain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
 	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/postgresdb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
+	"github.com/kammeph/school-book-storage-service/web"
+	"github.com/kammeph/school-book-storage-service/web/auth"
 )
 
 func InMemoryConfig() {
@@ -51,11 +53,46 @@ func PostgresMongoRabbitConfig(postgresDB *sql.DB, mongoClient mongodb.Client, r
 }
 
 func configureEndpoints(controller *StorageController) {
-	http.HandleFunc("/api/storages/get-all/", controller.GetAllStorages)
-	http.HandleFunc("/api/storages/get-by-id/", controller.GetStorageByID)
-	http.HandleFunc("/api/storages/get-by-name/", controller.GetStorageByName)
-	http.HandleFunc("/api/storages/add", controller.AddStorage)
-	http.HandleFunc("/api/storages/remove", controller.RemoveStorage)
-	http.HandleFunc("/api/storages/rename", controller.RenameStorage)
-	http.HandleFunc("/api/storages/relocate", controller.RelocateStorage)
+	web.Get(
+		"/api/storages/get-all/",
+		auth.IsAllowed(
+			controller.GetAllStorages,
+			[]userdomain.Role{userdomain.User, userdomain.Superuser, userdomain.Admin},
+		))
+	web.Get(
+		"/api/storages/get-by-id/",
+		auth.IsAllowed(
+			controller.GetStorageByID,
+			[]userdomain.Role{userdomain.User, userdomain.Superuser, userdomain.Admin},
+		))
+	web.Get(
+		"/api/storages/get-by-name/",
+		auth.IsAllowed(
+			controller.GetStorageByName,
+			[]userdomain.Role{userdomain.User, userdomain.Superuser, userdomain.Admin},
+		))
+	web.Post(
+		"/api/storages/add",
+		auth.IsAllowed(
+			controller.AddStorage,
+			[]userdomain.Role{userdomain.Admin},
+		))
+	web.Post(
+		"/api/storages/remove",
+		auth.IsAllowed(
+			controller.RemoveStorage,
+			[]userdomain.Role{userdomain.Admin},
+		))
+	web.Post(
+		"/api/storages/rename",
+		auth.IsAllowed(
+			controller.RenameStorage,
+			[]userdomain.Role{userdomain.Admin},
+		))
+	web.Post(
+		"/api/storages/relocate",
+		auth.IsAllowed(
+			controller.RelocateStorage,
+			[]userdomain.Role{userdomain.Admin},
+		))
 }

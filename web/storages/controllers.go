@@ -1,4 +1,4 @@
-package web
+package storages
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/kammeph/school-book-storage-service/application/storageapp"
+	"github.com/kammeph/school-book-storage-service/web"
 )
 
 type StorageController struct {
@@ -28,7 +29,7 @@ func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	JsonResponse(w, dto)
+	web.JsonResponse(w, dto)
 }
 
 func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +79,7 @@ func (c StorageController) GetAllStorages(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	JsonResponse(w, storages)
+	web.JsonResponse(w, storages)
 }
 
 func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +94,7 @@ func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	JsonResponse(w, storage)
+	web.JsonResponse(w, storage)
 }
 
 func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Request) {
@@ -108,5 +109,5 @@ func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	JsonResponse(w, storage)
+	web.JsonResponse(w, storage)
 }
