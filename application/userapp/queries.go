@@ -17,9 +17,16 @@ func NewUserQueryHandlers(store application.Store) UserQueryHandlers {
 	return UserQueryHandlers{NewGetUserByIDQueryHandler(store)}
 }
 
-type GetUserByID struct {
+type GetUserByIDQuery struct {
 	application.QueryModel
 	UserID string
+}
+
+func NewGetUserByIDQuery(id, userID string) GetUserByIDQuery {
+	return GetUserByIDQuery{
+		QueryModel: application.QueryModel{ID: id},
+		UserID:     userID,
+	}
 }
 
 type GetUserByIDQueryHandler struct {
@@ -30,7 +37,7 @@ func NewGetUserByIDQueryHandler(store application.Store) GetUserByIDQueryHandler
 	return GetUserByIDQueryHandler{store}
 }
 
-func (h *GetUserByIDQueryHandler) Handle(ctx context.Context, query GetUserByID) (*userdomain.UserModel, error) {
+func (h *GetUserByIDQueryHandler) Handle(ctx context.Context, query GetUserByIDQuery) (*userdomain.UserModel, error) {
 	aggregate := userdomain.NewUsersAggregateWithID(query.ID)
 	events, err := h.store.Load(ctx, aggregate.AggregateID())
 	if err != nil {
