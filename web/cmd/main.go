@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-	// postgres.CreatePostgresStoreTables()
 	connection := rabbitmq.NewRabbitMQConnection()
 	defer func() {
 		if err := connection.Close(); err != nil {
