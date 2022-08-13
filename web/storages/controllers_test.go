@@ -1,4 +1,4 @@
-package web_test
+package storages_test
 
 import (
 	"encoding/json"
@@ -13,11 +13,11 @@ import (
 	"github.com/kammeph/school-book-storage-service/domain"
 	"github.com/kammeph/school-book-storage-service/domain/storagedomain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/memory"
-	"github.com/kammeph/school-book-storage-service/web"
+	"github.com/kammeph/school-book-storage-service/web/storages"
 	"github.com/stretchr/testify/assert"
 )
 
-func getStorageController() *web.StorageController {
+func getStorageController() *storages.StorageController {
 	eventDataForRemove, _ := json.Marshal(storagedomain.StorageAddedEvent{
 		SchoolID:  "school",
 		StorageID: "testRemove",
@@ -52,7 +52,7 @@ func getStorageController() *web.StorageController {
 		[]storagedomain.StorageWithBooks{storage1School1, storage2School1, storage1School2})
 	commandHandlers := storageapp.NewStorageCommandHandlers(store, nil)
 	queryHandlers := storageapp.NewStorageQueryHandlers(repository)
-	return web.NewStorageController(commandHandlers, queryHandlers)
+	return storages.NewStorageController(commandHandlers, queryHandlers)
 }
 
 func TestAddStorage(t *testing.T) {
@@ -207,14 +207,16 @@ func TestGetAllStorages(t *testing.T) {
 			statusCode:  http.StatusOK,
 			responses: []string{
 				`"schoolId":"school1","storageId":"storage1School1","name":"Closet 1","location":"Room 101"`,
-				`"schoolId":"school1","storageId":"storage2School1","name":"Closet 2","location":"Room 101"`},
+				`"schoolId":"school1","storageId":"storage2School1","name":"Closet 2","location":"Room 101"`,
+			},
 		},
 		{
 			name:        "get all storages for school 2",
 			aggregateID: "school2",
 			statusCode:  http.StatusOK,
 			responses: []string{
-				`"schoolId":"school2","storageId":"storage1School2","name":"Closet 1","location":"Room 203"`},
+				`"schoolId":"school2","storageId":"storage1School2","name":"Closet 1","location":"Room 203"`,
+			},
 		},
 	}
 	for _, test := range tests {
