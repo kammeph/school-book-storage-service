@@ -38,4 +38,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 		data VARCHAR(255) NOT NULL,
 		PRIMARY KEY (id)
 	);
+	CREATE TABLE IF NOT EXISTS users (
+		id VARCHAR(100) NOT NULL,
+		aggregate_id VARCHAR(100) NOT NULL,
+		type VARCHAR(100) NOT NULL,
+		version INTEGER NOT NULL,
+		timestamp TIMESTAMP NOT NULL,
+		data VARCHAR(255) NOT NULL,
+		PRIMARY KEY (id)
+	);
 EOSQL
