@@ -10,7 +10,6 @@ import (
 	"github.com/kammeph/school-book-storage-service/infrastructure/postgresdb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
 	"github.com/kammeph/school-book-storage-service/web"
-	"github.com/kammeph/school-book-storage-service/web/auth"
 )
 
 func InMemoryConfig() {
@@ -55,43 +54,43 @@ func PostgresMongoRabbitConfig(postgresDB *sql.DB, mongoClient mongodb.Client, r
 func configureEndpoints(controller *StorageController) {
 	web.Get(
 		"/api/storages/get-all/",
-		auth.IsAllowed(
+		web.IsAllowed(
 			controller.GetAllStorages,
 			[]userdomain.Role{userdomain.User, userdomain.Superuser, userdomain.Admin},
 		))
 	web.Get(
 		"/api/storages/get-by-id/",
-		auth.IsAllowed(
+		web.IsAllowed(
 			controller.GetStorageByID,
 			[]userdomain.Role{userdomain.User, userdomain.Superuser, userdomain.Admin},
 		))
 	web.Get(
 		"/api/storages/get-by-name/",
-		auth.IsAllowed(
+		web.IsAllowed(
 			controller.GetStorageByName,
 			[]userdomain.Role{userdomain.User, userdomain.Superuser, userdomain.Admin},
 		))
 	web.Post(
 		"/api/storages/add",
-		auth.IsAllowed(
+		web.IsAllowed(
 			controller.AddStorage,
 			[]userdomain.Role{userdomain.Admin},
 		))
 	web.Post(
 		"/api/storages/remove",
-		auth.IsAllowed(
+		web.IsAllowed(
 			controller.RemoveStorage,
 			[]userdomain.Role{userdomain.Admin},
 		))
 	web.Post(
 		"/api/storages/rename",
-		auth.IsAllowed(
+		web.IsAllowed(
 			controller.RenameStorage,
 			[]userdomain.Role{userdomain.Admin},
 		))
 	web.Post(
 		"/api/storages/relocate",
-		auth.IsAllowed(
+		web.IsAllowed(
 			controller.RelocateStorage,
 			[]userdomain.Role{userdomain.Admin},
 		))

@@ -7,7 +7,6 @@ import (
 	"github.com/kammeph/school-book-storage-service/domain/userdomain"
 	"github.com/kammeph/school-book-storage-service/infrastructure/postgresdb"
 	"github.com/kammeph/school-book-storage-service/web"
-	"github.com/kammeph/school-book-storage-service/web/auth"
 )
 
 func PostgresConfig(db *sql.DB) {
@@ -21,7 +20,7 @@ func PostgresConfig(db *sql.DB) {
 func configureEndpoints(controller *UsersController) {
 	web.Get(
 		"/api/users/me",
-		auth.IsAllowedWithClaims(
+		web.IsAllowedWithClaims(
 			controller.GetMe,
 			[]userdomain.Role{userdomain.User, userdomain.Superuser, userdomain.Admin},
 		))
