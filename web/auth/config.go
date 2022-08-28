@@ -18,6 +18,7 @@ func PostgresConfig(db *sql.DB) {
 
 func configureEndpoints(controller *AuthController) {
 	web.Post("/api/auth/login", controller.Login)
+	web.Post("/api/auth/logout", controller.Logout)
 	web.Post("/api/auth/register", controller.Register)
 	web.Get("/api/auth/refresh", controller.Refresh)
 }

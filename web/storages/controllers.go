@@ -24,12 +24,12 @@ func (c StorageController) AddStorage(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&command)
 	ctx := context.Background()
 	defer ctx.Done()
-	dto, err := c.commmandHandlers.AddStorageHandler.Handle(ctx, command)
+	storageID, err := c.commmandHandlers.AddStorageHandler.Handle(ctx, command)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		web.HttpErrorResponse(w, err.Error())
 		return
 	}
-	web.JsonResponse(w, dto)
+	web.HttpResponse(w, storageID)
 }
 
 func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +39,7 @@ func (c StorageController) RemoveStorage(w http.ResponseWriter, r *http.Request)
 	defer ctx.Done()
 	err := c.commmandHandlers.RemoveStorageHandler.Handle(ctx, command)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
-		return
+		web.HttpErrorResponse(w, err.Error())
 	}
 }
 
@@ -51,8 +50,7 @@ func (c StorageController) RenameStorage(w http.ResponseWriter, r *http.Request)
 	defer ctx.Done()
 	err := c.commmandHandlers.RenameStorageHandler.Handle(ctx, command)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
-		return
+		web.HttpErrorResponse(w, err.Error())
 	}
 }
 
@@ -63,8 +61,7 @@ func (c StorageController) RelocateStorage(w http.ResponseWriter, r *http.Reques
 	defer ctx.Done()
 	err := c.commmandHandlers.RelocateStorageHandler.Handle(ctx, command)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
-		return
+		web.HttpErrorResponse(w, err.Error())
 	}
 }
 
@@ -76,10 +73,10 @@ func (c StorageController) GetAllStorages(w http.ResponseWriter, r *http.Request
 	query := storageapp.NewGetAllStorages(aggregateID)
 	storages, err := c.queryHandlers.GetAllHandler.Handle(ctx, query)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		web.HttpErrorResponse(w, err.Error())
 		return
 	}
-	web.JsonResponse(w, storages)
+	web.HttpResponse(w, storages)
 }
 
 func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request) {
@@ -91,10 +88,10 @@ func (c StorageController) GetStorageByID(w http.ResponseWriter, r *http.Request
 	query := storageapp.NewGetStorageByID(aggregateID, storageID)
 	storage, err := c.queryHandlers.GetStorageByIDHandler.Handle(ctx, query)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		web.HttpErrorResponse(w, err.Error())
 		return
 	}
-	web.JsonResponse(w, storage)
+	web.HttpResponse(w, storage)
 }
 
 func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Request) {
@@ -106,8 +103,8 @@ func (c StorageController) GetStorageByName(w http.ResponseWriter, r *http.Reque
 	query := storageapp.NewGetStorageByName(aggregateID, name)
 	storage, err := c.queryHandlers.GetStorageByNameHandler.Handle(ctx, query)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		web.HttpErrorResponse(w, err.Error())
 		return
 	}
-	web.JsonResponse(w, storage)
+	web.HttpResponse(w, storage)
 }

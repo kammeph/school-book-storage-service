@@ -4,10 +4,17 @@ import (
 	"net/http"
 
 	"github.com/kammeph/school-book-storage-service/application/userapp"
-	"github.com/kammeph/school-book-storage-service/domain/userdomain"
 	"github.com/kammeph/school-book-storage-service/web"
-	"github.com/kammeph/school-book-storage-service/web/auth"
 )
+
+type UserResponseModel struct {
+	User userapp.UserDto `json:"user"`
+}
+
+func UserResponse(w http.ResponseWriter, user userapp.UserDto) {
+	response := UserResponseModel{user}
+	web.JsonResponse(w, response)
+}
 
 type UsersController struct {
 	commandHandlers userapp.UserCommandHandlers
@@ -18,19 +25,13 @@ func NewUsersController(commandHandlers userapp.UserCommandHandlers, queryHandle
 	return &UsersController{commandHandlers, queryHandlers}
 }
 
-func (c *UsersController) GetMe(w http.ResponseWriter, r *http.Request, claims auth.AccessClaims) {
-	user := struct {
-		ID       string            `json:"id"`
-		SchoolID string            `json:"schoolId"`
-		Name     string            `json:"name"`
-		Roles    []userdomain.Role `json:"roles"`
-		Locale   userdomain.Locale `json:"locale"`
-	}{
+func (c *UsersController) GetMe(w http.ResponseWriter, r *http.Request, claims web.AccessClaims) {
+	user := userapp.UserDto{
 		ID:       claims.UserID,
 		SchoolID: claims.SchoolID,
 		Name:     claims.UserName,
 		Roles:    claims.Roles,
 		Locale:   claims.Locale,
 	}
-	web.JsonResponse(w, user)
+	UserResponse(w, user)
 }

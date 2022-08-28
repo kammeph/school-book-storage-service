@@ -1,4 +1,4 @@
-package auth
+package web
 
 import (
 	"errors"
@@ -15,8 +15,8 @@ import (
 
 var (
 	jwtSecretKey             = utils.GetenvOrFallback("JWT_SECRET_KEY", "MySuperSecretKey")
-	jwtAccessTokenExpiry, _  = strconv.Atoi(utils.GetenvOrFallback("JWT_ACCESS_TOKEN_EXPIRY_SEC", "60"))
-	jwtRefreshTokenExpiry, _ = strconv.Atoi(utils.GetenvOrFallback("JWT_REFRESH_TOKEN_EXPIRY_SEC", "120"))
+	jwtAccessTokenExpiry, _  = strconv.Atoi(utils.GetenvOrFallback("JWT_ACCESS_TOKEN_EXPIRY_SEC", "10"))
+	jwtRefreshTokenExpiry, _ = strconv.Atoi(utils.GetenvOrFallback("JWT_REFRESH_TOKEN_EXPIRY_SEC", "20"))
 )
 
 type AccessClaims struct {
@@ -37,12 +37,12 @@ func IsAllowed(handler func(w http.ResponseWriter, r *http.Request), roles []use
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString, err := getAccessToken(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			HttpErrorResponseWithStatusCode(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 		claims := &AccessClaims{}
-		if err := getClaimsFromToken(r, tokenString, claims); err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+		if err := GetClaimsFromToken(r, tokenString, claims); err != nil {
+			HttpErrorResponseWithStatusCode(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 		for _, role := range roles {
@@ -51,7 +51,7 @@ func IsAllowed(handler func(w http.ResponseWriter, r *http.Request), roles []use
 				return
 			}
 		}
-		http.Error(w, "user missing permissions", http.StatusMethodNotAllowed)
+		HttpErrorResponseWithStatusCode(w, "user missing permissions", http.StatusUnauthorized)
 	}
 }
 
@@ -66,7 +66,7 @@ func IsAllowedWithClaims(
 			return
 		}
 		claims := &AccessClaims{}
-		if err := getClaimsFromToken(r, tokenString, claims); err != nil {
+		if err := GetClaimsFromToken(r, tokenString, claims); err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -92,18 +92,15 @@ func getAccessToken(r *http.Request) (string, error) {
 	return token, nil
 }
 
-func getRefreshToken(r *http.Request) (string, error) {
+func GetRefreshToken(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("refreshToken")
 	if err != nil {
 		return "", err
 	}
-	// if cookie.Valid() != nil {
-	// 	return "", cookie.Valid()
-	// }
 	return cookie.Value, nil
 }
 
-func getClaimsFromToken(r *http.Request, tokenString string, claims jwt.Claims) error {
+func GetClaimsFromToken(r *http.Request, tokenString string, claims jwt.Claims) error {
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(jwtSecretKey), nil
 	})
@@ -116,7 +113,7 @@ func getClaimsFromToken(r *http.Request, tokenString string, claims jwt.Claims) 
 	return nil
 }
 
-func createAccessToken(user userdomain.UserModel, secret string) (string, error) {
+func CreateAccessToken(user userdomain.UserModel) (string, error) {
 	expirationTime := time.Now().Add(time.Duration(jwtAccessTokenExpiry) * time.Second)
 	claims := AccessClaims{
 		jwt.StandardClaims{
@@ -126,10 +123,10 @@ func createAccessToken(user userdomain.UserModel, secret string) (string, error)
 		user.ID, user.SchoolID, user.Name, user.Roles, user.Locale,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+	return token.SignedString([]byte(jwtSecretKey))
 }
 
-func createRefreshToken(userID string, secret string) (string, error) {
+func CreateRefreshToken(userID string) (string, error) {
 	expirationTime := time.Now().Add(time.Duration(jwtRefreshTokenExpiry) * time.Second)
 	claims := RefreshClaims{
 		jwt.StandardClaims{
@@ -138,5 +135,5 @@ func createRefreshToken(userID string, secret string) (string, error) {
 		userID,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+	return token.SignedString([]byte(jwtSecretKey))
 }
