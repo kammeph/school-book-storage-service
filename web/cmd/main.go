@@ -8,11 +8,12 @@ import (
 	"github.com/kammeph/school-book-storage-service/infrastructure/mongodb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/postgresdb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
-	"github.com/kammeph/school-book-storage-service/web"
+	"github.com/kammeph/school-book-storage-service/web/auth"
+	"github.com/kammeph/school-book-storage-service/web/storages"
+	"github.com/kammeph/school-book-storage-service/web/users"
 )
 
 func main() {
-	// postgres.CreatePostgresStoreTables()
 	connection := rabbitmq.NewRabbitMQConnection()
 	defer func() {
 		if err := connection.Close(); err != nil {
@@ -34,7 +35,8 @@ func main() {
 		}
 		log.Println("Connection to mongo db closed.")
 	}()
-	// web.InMemoryConfig()
-	web.PostgresMongoRabbitConfig(db, client, connection)
+	auth.PostgresConfig(db)
+	users.PostgresConfig(db)
+	storages.PostgresMongoRabbitConfig(db, client, connection)
 	http.ListenAndServe(":9090", nil)
 }
