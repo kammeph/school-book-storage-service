@@ -32,7 +32,7 @@ func (r *SchoolRepository) GetSchools(ctx context.Context) ([]schooldomain.Schoo
 }
 
 func (r *SchoolRepository) GetSchoolByID(ctx context.Context, schoolID string) (schooldomain.SchoolProjection, error) {
-	filter := bson.D{{Key: "schoolID", Value: schoolID}}
+	filter := bson.D{{Key: "schoolId", Value: schoolID}}
 	result := r.collection.FindOne(ctx, filter)
 	if result.Err() != nil {
 		return schooldomain.SchoolProjection{}, result.Err()

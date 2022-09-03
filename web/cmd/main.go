@@ -9,6 +9,7 @@ import (
 	"github.com/kammeph/school-book-storage-service/infrastructure/postgresdb"
 	"github.com/kammeph/school-book-storage-service/infrastructure/rabbitmq"
 	"github.com/kammeph/school-book-storage-service/web/auth"
+	"github.com/kammeph/school-book-storage-service/web/school"
 	"github.com/kammeph/school-book-storage-service/web/storages"
 	"github.com/kammeph/school-book-storage-service/web/users"
 )
@@ -37,6 +38,7 @@ func main() {
 	}()
 	auth.PostgresConfig(db)
 	users.PostgresConfig(db)
+	school.PostgresMongoRabbitConfig(db, client, connection)
 	storages.PostgresMongoRabbitConfig(db, client, connection)
 	http.ListenAndServe(":9090", nil)
 }
