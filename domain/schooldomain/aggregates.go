@@ -19,6 +19,12 @@ func NewSchoolAggregate() *SchoolAggregate {
 	return aggregate
 }
 
+func NewSchoolAggregateWithID(id string) *SchoolAggregate {
+	aggregate := NewSchoolAggregate()
+	aggregate.ID = id
+	return aggregate
+}
+
 func (a *SchoolAggregate) On(event domain.Event) error {
 	switch event.EventType() {
 	case SchoolAdded:
