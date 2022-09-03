@@ -6,6 +6,18 @@ import (
 	"github.com/kammeph/school-book-storage-service/domain/schooldomain"
 )
 
+type SchoolQueryHandlers struct {
+	GetSchoolsHandler    GetSchoolsQueryHandler
+	GetSchoolByIDHandler GetSchoolByIDQueryHandler
+}
+
+func NewSchoolQueryHandlers(repository SchoolRepository) SchoolQueryHandlers {
+	return SchoolQueryHandlers{
+		GetSchoolsHandler:    NewGetSchoolsQueryHandler(repository),
+		GetSchoolByIDHandler: NewGetSchoolByIDQueryHandler(repository),
+	}
+}
+
 type GetSchoolsQueryHandler struct {
 	repository SchoolRepository
 }
