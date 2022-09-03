@@ -51,7 +51,7 @@ func (h SchoolEventHandler) handleSchoolDeactivated(ctx context.Context, event d
 	if err := event.GetJsonData(&eventData); err != nil {
 		log.Println(err.Error())
 	}
-	if err := h.repository.UpdateSchoolActive(ctx, eventData.SchoolID, false); err != nil {
+	if err := h.repository.DeleteSchool(ctx, eventData.SchoolID); err != nil {
 		log.Println(err.Error())
 	}
 }
